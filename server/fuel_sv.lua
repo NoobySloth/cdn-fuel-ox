@@ -129,7 +129,7 @@ if Config.UseSyphoning then
 		local src = source
 		if item.metadata.cdn_fuel == nil then
 			item.metadata.cdn_fuel = '0'
-			ox_inventory:SetMetadata(src, item.slot, item.metadata)
+			exports.ox_inventory:SetMetadata(src, item.slot, item.metadata)
 		end
 		TriggerClientEvent('cdn-syphoning:syphon:menu', src, item)
 	end)
