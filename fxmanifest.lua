@@ -1,7 +1,7 @@
 fx_version 'cerulean'
 game 'gta5'
-author 'https://www.github.com/CodineDev' -- Base Refueling System from PS (https://www.github.com/Project-Sloth), other code by CodineDev (https://www.github.com/CodineDev). 
-description 'cdn-fuel'
+author 'https://www.github.com/CodineDev' -- Base Refueling System from PS (https://www.github.com/Project-Sloth), other code by CodineDev (https://www.github.com/CodineDev).
+description 'cdn-fuel ox converted by NoobySloth'
 version '2.0.0'
 
 client_scripts {
@@ -16,13 +16,14 @@ server_scripts {
 	'server/fuel_sv.lua',
 	'server/station_sv.lua',
 	'server/electric_sv.lua',
-	'@oxmysql/lib/MySQL.lua',
+	'@oxmysql/lib/MySQL.lua'
 }
 
 shared_scripts {
 	'shared/config.lua',
 	'@qb-core/shared/locale.lua',
-	'locales/en.lua', -- English Locales
+	"@ox_lib/init.lua",
+	'locales/en.lua' -- English Locales
 	-- 'locales/de.lua', -- German / Deutsch Locales
 	-- 'locales/fr.lua', -- French / Français Locales
 	-- 'locales/es.lua', -- Spanish / Español / Española Locales
@@ -36,10 +37,7 @@ exports { -- Call with exports['cdn-fuel']:GetFuel or exports['cdn-fuel']:SetFue
 lua54 'yes'
 
 dependencies { -- Make sure these are started before cdn-fuel in your server.cfg!
-	'qb-target',
-	'PolyZone', 
-	'qb-input',
-	'qb-menu',
+	'PolyZone',
 	'interact-sound',
 }
 
