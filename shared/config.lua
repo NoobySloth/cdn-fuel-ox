@@ -14,8 +14,8 @@ Config.FuelTargetExport = false -- This is only used to fix this issue: https://
 Config.qbox = true  -- Are you using qbox?
 
 -- Syphoning --
-Config.UseSyphoning = false -- Follow the Syphoning Install Guide to enable this option!
-Config.SyphonDebug = false -- Used for Debugging the syphon portion!
+Config.UseSyphoning = true -- Follow the Syphoning Install Guide to enable this option!
+Config.SyphonDebug = true -- Used for Debugging the syphon portion!
 Config.SyphonFuelDecor = Config.FuelDecor -- Do not touch! (Default: "_FUEL_LEVEL")
 Config.SyphonKitCap = 50 -- Maximum amount (in L) the syphon kit can fit!
 Config.SyphonPoliceCallChance = 25 -- Math.Random(1, 100) Default: 25%
@@ -24,8 +24,8 @@ Config.SyphonDispatchSystem = "ps-dispatch" -- Options: "ps-dispatch", "qb-dispa
 --- Jerry Can -----
 Config.UseJerryCan = true -- Enable the Jerry Can functionality. Will only work if properly installed.
 Config.JerryCanCap = 50 -- Maximum amount (in L) the jerrycan can fit! (Default: 50L)
-Config.JerryCanPrice = 750 -- The price of a jerry can, not including tax.
-Config.JerryCanGas = 0 -- The amount of Gas that the Jerry Can you purchase comes with. This should not be bigger that your Config.JerryCanCap!
+Config.JerryCanPrice = 200 -- The price of a jerry can, not including tax.
+Config.JerryCanGas = 25 -- The amount of Gas that the Jerry Can you purchase comes with. This should not be bigger that your Config.JerryCanCap!
 
 -- Animations --
 Config.StealAnimDict = 'anim@amb@clubhouse@tutorial@bkr_tut_ig3@'-- Used for Syphoning
@@ -40,12 +40,12 @@ Config.RefuelAnimationDictionary = "timetable@gardener@filling_can" -- This is f
 Config.PlayerOwnedGasStationsEnabled = false -- When true, peds will be located at all gas stations, and players will be able to talk with peds & purchase gas stations, having to manage fuel supplies.
 Config.StationFuelSalePercentage = 0.65 -- % of sales that the station gets. If they sell 4 Liters of Gas for $16 (not including taxes), they will get 16*Config.StationFuelSalePercentage back from the sale. Treat this as tax, also, it balances the profit margins a bit.
 Config.EmergencyShutOff = false -- When true, players can walk up to the ped and shut off the pumps at a gas station. While false, this option is disabled, because it can obviously be an issue.
-Config.UnlimitedFuel = false -- When true, the fuel stations will not require refuelling by gas station owners, this is for the early stages of implementation.
+Config.UnlimitedFuel = true -- When true, the fuel stations will not require refuelling by gas station owners, this is for the early stages of implementation.
 Config.MaxFuelReserves = 100000 -- This is the maximum amount that the fuel station's reserves can hold.
 Config.FuelReservesPrice = 2.0 -- This is the price of fuel reserves for gas station owners.
 Config.GasStationSellPercentage = 50 -- This is the percentage that players will get of the gas stations price, when they sell a location!
 Config.MinimumFuelPrice = 3 -- This is the minimum value you want to let players set their fuel prices to.
-Config.MaxFuelPrice = 10 -- This is the maximum value you want to let players set their fuel prices to.
+Config.MaxFuelPrice = 7 -- This is the maximum value you want to let players set their fuel prices to.
 Config.PlayerControlledFuelPrices = true -- This gives you the option to disable people being able to control fuel prices. When true, players can control the fuel prices via to management menu for the location.
 Config.GasStationNameChanges = true -- This gives you the option to disable people being able to change the name of their gas station, only recommended if it becomes a problem.
 Config.NameChangeMinChar = 10 -- This is the minimum length that a Gas Station's name must be.

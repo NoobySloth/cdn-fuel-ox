@@ -18,6 +18,12 @@ local props = {
 local refueling = false
 local GasStationBlips = {} -- Used for managing blips on the client, so labels can be updated.
 
+
+local function GlobalTax(value)
+	local tax = (value / 100 * Config.GlobalTax)
+	return tax
+end
+
 AddEventHandler("QBCore:Client:OnPlayerLoaded", function()
     if GetResourceState('ox_inventory'):match("start") then
         exports.ox_inventory:displayMetadata({
@@ -434,7 +440,6 @@ RegisterNetEvent('cdn-fuel:client:OpenContextMenu', function(total, fuelamountto
 			},
 		},
 	})
-	print(fuelamounttotal, purchasetype)
 	lib.showContext('cdnconfirmationmenu')
 end)
 
@@ -465,16 +470,16 @@ RegisterNetEvent('cdn-fuel:client:FinalMenu', function(purchasetype)
 			if ReserveLevels < maxfuel then
 				local wholetankcost = (FuelPrice * ReserveLevels)
 				local wholetankcostwithtax = math.ceil(FuelPrice * ReserveLevels + GlobalTax(wholetankcost))
-				fuel = lib.inputDialog('Gas Station', {{ type = "input", label = "Current Price: $" .. FuelPrice .. " / Litre   \n Current Fuel: " .. finalfuel .. " Litres   \n Full Tank Cost: $" ..	wholetankcostwithtax .. "   \nOnly "..ReserveLevels.." Litres are available", default = ReserveLevels }})
+				fuel = lib.inputDialog('Gas Station', {{ type = "input", label = "Current Price: $" .. FuelPrice .. " / Litre  \nCurrent Fuel: " .. finalfuel .. " Litres  \nFull Tank Cost: $" ..	wholetankcostwithtax .. "  \nOnly "..ReserveLevels.." Litres are available", default = ReserveLevels }})
 
 				fuelAmount = tonumber(fuel[1])
 			else
-				fuel = lib.inputDialog('Gas Station', {{ type = "input", label = "Current Price: $" .. FuelPrice .. " / Litre   \n Current Fuel: " .. finalfuel .. " Litres   \n Full Tank Cost: $" ..	wholetankcostwithtax .. "   \nThe Tank Can Hold " .. maxfuel .. " More Litres.", default = maxfuel }})
+				fuel = lib.inputDialog('Gas Station', {{ type = "input", label = "Current Price: $" .. FuelPrice .. " / Litre  \nCurrent Fuel: " .. finalfuel .. " Litres  \nFull Tank Cost: $" ..	wholetankcostwithtax .. "  \nThe Tank Can Hold " .. maxfuel .. " More Litres.", default = maxfuel }})
 
 				fuelAmount = tonumber(fuel[1])
 			end
 		else
-			fuel = lib.inputDialog('Gas Station', {{ type = "input", label = "Current Price: $" .. FuelPrice .. " / Litre   \n Current Fuel: " .. finalfuel .. " Litres   \n Full Tank Cost: $" ..	wholetankcostwithtax .. "   \nThe Tank Can Hold " .. maxfuel .. " More Litres.", default = maxfuel }})
+			fuel = lib.inputDialog('Gas Station', {{ type = "input", label = "Current Price: $" .. FuelPrice .. " / Litre  \nCurrent Fuel: " .. finalfuel .. " Litres  \nFull Tank Cost: $" ..	wholetankcostwithtax .. "  \nThe Tank Can Hold " .. maxfuel .. " More Litres.", default = maxfuel }})
 
 			fuelAmount = tonumber(fuel[1])
 		end
@@ -768,10 +773,12 @@ RegisterNetEvent('cdn-fuel:client:RefuelVehicle', function(data)
 					if purchasetype == "cash" then
 						TriggerServerEvent('cdn-fuel:server:PayForFuel', refillCost, purchasetype, FuelPrice)
 					elseif purchasetype == "bank" then
+						local tax = GlobalTax(refillCost)
+						local totalPayment = math.ceil(refillCost + tax)
 						exports["npwd"]:createNotification({ -- You can change this export to your own notification
-							notisId = "npwd:fuelTaken",
+							notisId = "npwd:fuelPaidFor",
 							appId = "BANK",
-							content = "You have paid $"..refillCost.." for fuel at $"..FuelPrice.." per litre",
+							content = "You have paid $"..totalPayment.." for fuel at $"..FuelPrice.." per litre + tax",
 							secondaryTitle = "New Transaction",
 							keepOpen = false,
 							duration = 15000,
@@ -956,7 +963,7 @@ RegisterNetEvent('cdn-fuel:jerrycan:refuelmenu', function(itemData)
 	if GetVehicleBodyHealth(vehicle) < 100 then QBCore.Functions.Notify(Lang:t("vehicle_is_damaged"), 'error') return end
 	if Config.qbox then
 		local jerrycanamount = tonumber(itemData.metadata.cdn_fuel)
-		print(json.encode(itemData, {indent=true}))
+		-- print(json.encode(itemData, {indent=true}))
 		if holdingnozzle then
 			local fulltank
 			if jerrycanamount == Config.JerryCanCap then fulltank = true
@@ -1022,63 +1029,71 @@ RegisterNetEvent('cdn-fuel:jerrycan:refuelmenu', function(itemData)
 
 		if holdingnozzle then
 			local fulltank
-			if jerrycanamount == Config.JerryCanCap then fulltank = true
+			if itemData.info.gasamount == Config.JerryCanCap then fulltank = true
 				GasString = Lang:t("menu_jerry_can_footer_full_gas")
 			else fulltank = false
 				GasString = Lang:t("menu_jerry_can_footer_refuel_gas")
 			end
-
-			lib.registerContext({
-				id = 'cdnrefuelmenu',
-				title = Lang:t("menu_header_jerry_can"),
-				options = {
-					{
-						title = Lang:t("menu_header_refuel_jerry_can"),
-						event = 'cdn-fuel:jerrycan:refueljerrycan',
-						args = {itemData = itemData},
-						disabled = fulltank
+			exports['qb-menu']:openMenu({
+				{
+					header = Lang:t("menu_header_jerry_can"),
+					isMenuHeader = true,
+				},
+				{
+					header = Lang:t("menu_header_refuel_jerry_can"),
+					txt = GasString,
+					icon = "fas fa-gas-pump",
+					params = {
+						event = "cdn-fuel:jerrycan:refueljerrycan",
+						args = {
+							itemData = itemData,
+						},
 					},
-					{
-						title = Lang:t("menu_header_close"),
-						description = Lang:t("menu_jerry_can_close"),
-						icon = "fas fa-times-circle",
-						onSelect = function()
-							lib.hideContext()
-						end,
-					},
+					disabled = fulltank,
+				},
+				{
+					header = Lang:t("menu_header_close"),
+					txt = Lang:t("menu_jerry_can_close"),
+					icon = "fas fa-times-circle",
+					params = {
+						event = "qb-menu:closeMenu",
+					}
 				},
 			})
-			lib.showContext('cdnrefuelmenu')
 		else
 			if #(vehiclecoords - pedcoords) > 2.5 then return end
 			local nogas
-			if jerrycanamount < 1 then nogas = true
+			if itemData.info.gasamount < 1 then nogas = true
 				GasString = Lang:t("menu_jerry_can_footer_no_gas")
 			else nogas = false
 				GasString = Lang:t("menu_jerry_can_footer_use_gas")
 			end
-
-			lib.registerContext({
-				id = 'cdnrefuelmenu2',
-				title = Lang:t("menu_header_jerry_can"),
-				options = {
-					{
-						title = Lang:t("menu_header_refuel_jerry_can"),
-						event = 'cdn-fuel:jerrycan:refuelvehicle',
-						args = {itemData = itemData},
-						disabled = nogas,
+			exports['qb-menu']:openMenu({
+				{
+					header = Lang:t("menu_header_jerry_can"),
+					isMenuHeader = true,
+				},
+				{
+					header = Lang:t("menu_header_refuel_vehicle"),
+					txt = GasString,
+					icon = "fas fa-gas-pump",
+					params = {
+						event = "cdn-fuel:jerrycan:refuelvehicle",
+						args = {
+							itemData = itemData,
+						},
 					},
-					{
-						title = Lang:t("menu_header_close"),
-						description = Lang:t("menu_jerry_can_close"),
-						icon = "fas fa-times-circle",
-						onSelect = function()
-							lib.hideContext()
-						end,
-					},
+					disabled = nogas,
+				},
+				{
+					header = Lang:t("menu_header_close"),
+					txt = Lang:t("menu_jerry_can_close"),
+					icon = "fas fa-times-circle",
+					params = {
+						event = "qb-menu:closeMenu",
+					}
 				},
 			})
-			lib.showContext('cdnrefuelmenu2')
 		end
 	end
 end)
@@ -1112,35 +1127,71 @@ end)
 RegisterNetEvent('cdn-fuel:client:purchasejerrycan', function()
 	local playercashamount = QBCore.Functions.GetPlayerData().money['cash']
 
-	lib.registerContext({
-		id = 'purchasejerrycan',
-		title = Lang:t("menu_jerry_can_purchase_header")..(math.ceil(Config.JerryCanPrice + GlobalTax(Config.JerryCanPrice))),
-		options = {
+	if Config.qbox then
+		lib.registerContext({
+			id = 'purchasejerrycan',
+			title = Lang:t("menu_jerry_can_purchase_header")..(math.ceil(Config.JerryCanPrice + GlobalTax(Config.JerryCanPrice))),
+			options = {
+				{
+					title = Lang:t("menu_header_cash"),
+					description = Lang:t("menu_pay_with_cash") .. playercashamount,
+					icon = "fas fa-usd",
+					event = 'cdn-fuel:client:jerrycanfinalmenu',
+					args = 'cash',
+				},
+				{
+					title = Lang:t("menu_header_bank"),
+					description = Lang:t("menu_pay_with_bank"),
+					icon = "fas fa-credit-card",
+					event = 'cdn-fuel:client:jerrycanfinalmenu',
+					args = 'bank',
+				},
+				{
+					title = Lang:t("menu_header_close"),
+					description = Lang:t("menu_jerry_can_close"),
+					icon = "fas fa-times-circle",
+					onSelect = function()
+						lib.hideContext()
+					end,
+				},
+			},
+		})
+		lib.showContext('purchasejerrycan')
+	else
+		exports['qb-menu']:openMenu({
 			{
-				title = Lang:t("menu_header_cash"),
-				description = Lang:t("menu_pay_with_cash") .. playercashamount,
+				header = Lang:t("menu_jerry_can_purchase_header")..(math.ceil(Config.JerryCanPrice + GlobalTax(Config.JerryCanPrice))),
+				isMenuHeader = true,
+				icon = "fas fa-fire-flame-simple",
+			},
+			{
+				header = Lang:t("menu_header_cash"),
+				txt = Lang:t("menu_pay_with_cash") .. playercashamount,
 				icon = "fas fa-usd",
-				event = 'cdn-fuel:client:jerrycanfinalmenu',
-				args = 'cash',
+				params = {
+					event = "cdn-fuel:client:jerrycanfinalmenu",
+					args = 'cash',
+				}
 			},
 			{
-				title = Lang:t("menu_header_bank"),
-				description = Lang:t("menu_pay_with_bank"),
+				header = Lang:t("menu_header_bank"),
+				txt = Lang:t("menu_pay_with_bank"),
 				icon = "fas fa-credit-card",
-				event = 'cdn-fuel:client:jerrycanfinalmenu',
-				args = 'bank',
+				params = {
+					event = "cdn-fuel:client:jerrycanfinalmenu",
+					args = 'bank',
+				}
 			},
 			{
-				title = Lang:t("menu_header_close"),
-				description = Lang:t("menu_jerry_can_close"),
+				header = Lang:t("menu_header_close"),
+				txt = Lang:t("menu_jerry_can_footer_close"),
 				icon = "fas fa-times-circle",
-				onSelect = function()
-					lib.hideContext()
-				  end,
+				params = {
+					event = "qb-menu:closeMenu",
+				}
 			},
-		},
-	})
-	lib.showContext('purchasejerrycan')
+		})
+	end
 end)
 
 RegisterNetEvent('cdn-fuel:jerrycan:refuelvehicle', function(data)
@@ -1148,51 +1199,58 @@ RegisterNetEvent('cdn-fuel:jerrycan:refuelvehicle', function(data)
 	local vehfuel = math.floor(GetFuel(vehicle))
 	local maxvehrefuel = (100 - math.ceil(vehfuel))
 	local itemData = data.itemData
-	if Config.qbox then
-		local jerrycanfuelamount = tonumber(itemData.metadata.cdn_fuel)
-		local vehicle = QBCore.Functions.GetClosestVehicle()
-		local NotElectric = false
-		if Config.ElectricVehicleCharging then
-			local isElectric = GetCurrentVehicleType(vehicle)
-			if isElectric == 'electricvehicle' then
-				QBCore.Functions.Notify(Lang:t("need_electric_charger"), 'error', 7500) return
-			end
-			NotElectric = true
-		else
-			NotElectric = true
+
+	local jerrycanfuelamount = tonumber(itemData.metadata.cdn_fuel)
+	local vehicle = QBCore.Functions.GetClosestVehicle()
+	local NotElectric = false
+	if Config.ElectricVehicleCharging then
+		local isElectric = GetCurrentVehicleType(vehicle)
+		if isElectric == 'electricvehicle' then
+			QBCore.Functions.Notify(Lang:t("need_electric_charger"), 'error', 7500) return
 		end
-		Wait(50)
-		if NotElectric then
-			if maxvehrefuel < Config.JerryCanCap then
-				maxvehrefuel = maxvehrefuel
-			else
-				maxvehrefuel = Config.JerryCanCap
-			end
-			if maxvehrefuel >= jerrycanfuelamount then maxvehrefuel = jerrycanfuelamount elseif maxvehrefuel < jerrycanfuelamount then maxvehrefuel = maxvehrefuel end
+		NotElectric = true
+	else
+		NotElectric = true
+	end
+	Wait(50)
+	if NotElectric then
+		if maxvehrefuel < Config.JerryCanCap then
+			maxvehrefuel = maxvehrefuel
+		else
+			maxvehrefuel = Config.JerryCanCap
+		end
+		if maxvehrefuel >= jerrycanfuelamount then maxvehrefuel = jerrycanfuelamount elseif maxvehrefuel < jerrycanfuelamount then maxvehrefuel = maxvehrefuel end
 
-			local refuel = lib.inputDialog(Lang:t("input_select_refuel_header"), {Lang:t("input_max_fuel_footer_1") .. maxvehrefuel .. Lang:t("input_max_fuel_footer_2")})
+		local refuel = lib.inputDialog(Lang:t("input_select_refuel_header"), {Lang:t("input_max_fuel_footer_1") .. maxvehrefuel .. Lang:t("input_max_fuel_footer_2")})
 
-			if not refuel then return end
-			local refuelAmount = tonumber(refuel[1])
+		if not refuel then return end
+		local refuelAmount = tonumber(refuel[1])
 
-			if refuel then
-				if tonumber(refuelAmount) == 0 then QBCore.Functions.Notify(Lang:t("more_than_zero"), 'error') return elseif tonumber(refuelAmount) < 0 then QBCore.Functions.Notify(Lang:t("more_than_zero"), 'error') return end
-				if tonumber(refuelAmount) > jerrycanfuelamount then QBCore.Functions.Notify(Lang:t("jerry_can_not_enough_fuel"), 'error') return end
-				local refueltimer = Config.RefuelTime * tonumber(refuelAmount)
-				if tonumber(refuelAmount) < 10 then refueltimer = Config.RefuelTime * 10 end
-				JerrycanProp = CreateObject(GetHashKey('w_am_jerrycan'), 1.0, 1.0, 1.0, true, true, false)
-				local lefthand = GetPedBoneIndex(PlayerPedId(), 18905)
-				AttachEntityToEntity(JerrycanProp, PlayerPedId(), lefthand, 0.11 --[[Left - Right (Kind of)]] , 0.05--[[Up - Down]], 0.27 --[[Forward - Backward]], -15.0, 170.0, -90.42, 0, 1, 0, 1, 0, 1)
-				QBCore.Functions.Progressbar('refuel_gas', Lang:t("prog_refueling_vehicle"), refueltimer, false, true, { -- Name | Label | Time | useWhileDead | canCancel
-					disableMovement = true,
-					disableCarMovement = true,
-					disableMouse = false,
-					disableCombat = true,
-				}, {
-					animDict = Config.JerryCanAnimDict,
-					anim = Config.JerryCanAnim,
-					flags = 17,
-				}, {}, {}, function() -- Play When Done
+		if refuel then
+			if tonumber(refuelAmount) == 0 then QBCore.Functions.Notify(Lang:t("more_than_zero"), 'error') return elseif tonumber(refuelAmount) < 0 then QBCore.Functions.Notify(Lang:t("more_than_zero"), 'error') return end
+			if tonumber(refuelAmount) > jerrycanfuelamount then QBCore.Functions.Notify(Lang:t("jerry_can_not_enough_fuel"), 'error') return end
+			local refueltimer = Config.RefuelTime * tonumber(refuelAmount)
+			if tonumber(refuelAmount) < 10 then refueltimer = Config.RefuelTime * 10 end
+			JerrycanProp = CreateObject(GetHashKey('w_am_jerrycan'), 1.0, 1.0, 1.0, true, true, false)
+			local lefthand = GetPedBoneIndex(PlayerPedId(), 18905)
+			AttachEntityToEntity(JerrycanProp, PlayerPedId(), lefthand, 0.11 --[[Left - Right (Kind of)]] , 0.05--[[Up - Down]], 0.27 --[[Forward - Backward]], -15.0, 170.0, -90.42, 0, 1, 0, 1, 0, 1)
+
+			if Config.qbox then
+				if lib.progressCircle({
+					duration = refueltimer,
+					position = 'bottom',
+					useWhileDead = false,
+					canCancel = true,
+					disable = {
+						car = true,
+						move = true,
+						combat = true
+					},
+					anim = {
+						dict = Config.JerryCanAnimDict,
+						clip = Config.JerryCanAnim
+					},
+				}) then 
 					DeleteObject(JerrycanProp)
 					StopAnimTask(PlayerPedId(), Config.JerryCanAnimDict, Config.JerryCanAnim, 1.0)
 					QBCore.Functions.Notify(Lang:t("jerry_can_success_vehicle"), 'success')
@@ -1200,50 +1258,12 @@ RegisterNetEvent('cdn-fuel:jerrycan:refuelvehicle', function(data)
 					local srcPlayerData = QBCore.Functions.GetPlayerData()
 					TriggerServerEvent('cdn-fuel:info', "remove", tonumber(refuelAmount), srcPlayerData, 'jerrycan')
 					SetFuel(vehicle, (vehfuel + refuelAmount))
-				end, function() -- Play When Cancel
+				else 
 					DeleteObject(JerrycanProp)
 					StopAnimTask(PlayerPedId(), Config.JerryCanAnimDict, Config.JerryCanAnim, 1.0)
 					QBCore.Functions.Notify(Lang:t("cancelled"), 'error')
-				end, "jerrycan")
-			end
-		else
-			QBCore.Functions.Notify(Lang:t("need_electric_charger"), 'error', 7500) return
-		end
-	else
-		local jerrycanfuelamount = itemData.info.gasamount
-		local vehicle = QBCore.Functions.GetClosestVehicle()
-		local NotElectric = false
-		if Config.ElectricVehicleCharging then
-			local isElectric = GetCurrentVehicleType(vehicle)
-			if isElectric == 'electricvehicle' then
-				QBCore.Functions.Notify(Lang:t("need_electric_charger"), 'error', 7500) return
-			end
-			NotElectric = true
-		else
-			NotElectric = true
-		end
-		Wait(50)
-		if NotElectric then
-			if maxvehrefuel < Config.JerryCanCap then
-				maxvehrefuel = maxvehrefuel
-			else
-				maxvehrefuel = Config.JerryCanCap
-			end
-			if maxvehrefuel >= jerrycanfuelamount then maxvehrefuel = jerrycanfuelamount elseif maxvehrefuel < jerrycanfuelamount then maxvehrefuel = maxvehrefuel end
-
-			local refuel = lib.inputDialog(Lang:t("input_select_refuel_header"), {Lang:t("input_max_fuel_footer_1") .. maxvehrefuel .. Lang:t("input_max_fuel_footer_2")})
-
-			if not refuel then return end
-			local refuelAmount = tonumber(refuel[1])
-
-			if refuel then
-				if tonumber(refuelAmount) == 0 then QBCore.Functions.Notify(Lang:t("more_than_zero"), 'error') return elseif tonumber(refuelAmount) < 0 then QBCore.Functions.Notify(Lang:t("more_than_zero"), 'error') return end
-				if tonumber(refuelAmount) > jerrycanfuelamount then QBCore.Functions.Notify(Lang:t("jerry_can_not_enough_fuel"), 'error') return end
-				local refueltimer = Config.RefuelTime * tonumber(refuelAmount)
-				if tonumber(refuelAmount) < 10 then refueltimer = Config.RefuelTime * 10 end
-				JerrycanProp = CreateObject(GetHashKey('w_am_jerrycan'), 1.0, 1.0, 1.0, true, true, false)
-				local lefthand = GetPedBoneIndex(PlayerPedId(), 18905)
-				AttachEntityToEntity(JerrycanProp, PlayerPedId(), lefthand, 0.11 --[[Left - Right (Kind of)]] , 0.05--[[Up - Down]], 0.27 --[[Forward - Backward]], -15.0, 170.0, -90.42, 0, 1, 0, 1, 0, 1)
+				end
+			else				
 				QBCore.Functions.Progressbar('refuel_gas', Lang:t("prog_refueling_vehicle"), refueltimer, false, true, { -- Name | Label | Time | useWhileDead | canCancel
 					disableMovement = true,
 					disableCarMovement = true,
@@ -1267,9 +1287,9 @@ RegisterNetEvent('cdn-fuel:jerrycan:refuelvehicle', function(data)
 					QBCore.Functions.Notify(Lang:t("cancelled"), 'error')
 				end, "jerrycan")
 			end
-		else
-			QBCore.Functions.Notify(Lang:t("need_electric_charger"), 'error', 7500) return
 		end
+	else
+		QBCore.Functions.Notify(Lang:t("need_electric_charger"), 'error', 7500) return
 	end
 end)
 
@@ -1283,38 +1303,43 @@ RegisterNetEvent('cdn-fuel:jerrycan:refueljerrycan', function(data)
 	end
 
 	local itemData = data.itemData
-	if Config.qbox then
-		local JerryCanMaxRefuel = (Config.JerryCanCap - itemData.metadata.cdn_fuel)
-		local jerrycanfuelamount = itemData.metadata.cdn_fuel
+	local JerryCanMaxRefuel = (Config.JerryCanCap - itemData.metadata.cdn_fuel)
+	local jerrycanfuelamount = itemData.metadata.cdn_fuel
 
-		local refuel = lib.inputDialog(Lang:t("input_select_refuel_header"), {Lang:t("input_max_fuel_footer_1") .. JerryCanMaxRefuel .. Lang:t("input_max_fuel_footer_2")})
+	local refuel = lib.inputDialog(Lang:t("input_select_refuel_header"), {Lang:t("input_max_fuel_footer_1") .. JerryCanMaxRefuel .. Lang:t("input_max_fuel_footer_2")})
 
-		if not refuel then return end
-		local refuelAmount = tonumber(refuel[1])
+	if not refuel then return end
+	local refuelAmount = tonumber(refuel[1])
 
-		if refuel then
-			if tonumber(refuelAmount) == 0 then QBCore.Functions.Notify(Lang:t("more_than_zero"), 'error') return elseif tonumber(refuelAmount) < 0 then QBCore.Functions.Notify(Lang:t("more_than_zero"), 'error') return end
-			if tonumber(refuelAmount) + tonumber(jerrycanfuelamount) > Config.JerryCanCap then QBCore.Functions.Notify(Lang:t("jerry_can_not_fit_fuel"), 'error') return end
-			if tonumber(refuelAmount) > Config.JerryCanCap then QBCore.Functions.Notify(Lang:t("jerry_can_not_fit_fuel"), 'error') return end
-			local refueltimer = Config.RefuelTime * tonumber(refuelAmount)
-			if tonumber(refuelAmount) < 10 then refueltimer = Config.RefuelTime * 10 end
-			local price = (tonumber(refuelAmount) * FuelPrice) + GlobalTax(tonumber(refuelAmount) * FuelPrice)
-			if not CanAfford(price, "cash") then QBCore.Functions.Notify(Lang:t("not_enough_money_in_cash"), 'error') return end
+	if refuel then
+		if tonumber(refuelAmount) == 0 then QBCore.Functions.Notify(Lang:t("more_than_zero"), 'error') return elseif tonumber(refuelAmount) < 0 then QBCore.Functions.Notify(Lang:t("more_than_zero"), 'error') return end
+		if tonumber(refuelAmount) + tonumber(jerrycanfuelamount) > Config.JerryCanCap then QBCore.Functions.Notify(Lang:t("jerry_can_not_fit_fuel"), 'error') return end
+		if tonumber(refuelAmount) > Config.JerryCanCap then QBCore.Functions.Notify(Lang:t("jerry_can_not_fit_fuel"), 'error') return end
+		local refueltimer = Config.RefuelTime * tonumber(refuelAmount)
+		if tonumber(refuelAmount) < 10 then refueltimer = Config.RefuelTime * 10 end
+		local price = (tonumber(refuelAmount) * FuelPrice) + GlobalTax(tonumber(refuelAmount) * FuelPrice)
+		if not CanAfford(price, "cash") then QBCore.Functions.Notify(Lang:t("not_enough_money_in_cash"), 'error') return end
 
-			JerrycanProp = CreateObject(GetHashKey('w_am_jerrycan'), 1.0, 1.0, 1.0, true, true, false)
-			local lefthand = GetPedBoneIndex(PlayerPedId(), 18905)
-			AttachEntityToEntity(JerrycanProp, PlayerPedId(), lefthand, 0.11 --[[Left - Right (Kind of)]] , 0.05--[[Up - Down]], 0.27 --[[Forward - Backward]], -15.0, 170.0, -90.42, 0, 1, 0, 1, 0, 1)
-			SetEntityVisible(fuelnozzle, false, 0)
-			QBCore.Functions.Progressbar('refuel_gas', Lang:t("prog_jerry_can_refuel"), refueltimer, false,true, { -- Name | Label | Time | useWhileDead | canCancel
-				disableMovement = true,
-				disableCarMovement = true,
-				disableMouse = false,
-				disableCombat = true,
-			}, {
-				animDict = Config.JerryCanAnimDict,
-				anim = Config.JerryCanAnim,
-				flags = 17,
-			}, {}, {}, function() -- Play When Done
+		JerrycanProp = CreateObject(GetHashKey('w_am_jerrycan'), 1.0, 1.0, 1.0, true, true, false)
+		local lefthand = GetPedBoneIndex(PlayerPedId(), 18905)
+		AttachEntityToEntity(JerrycanProp, PlayerPedId(), lefthand, 0.11 --[[Left - Right (Kind of)]] , 0.05--[[Up - Down]], 0.27 --[[Forward - Backward]], -15.0, 170.0, -90.42, 0, 1, 0, 1, 0, 1)
+		SetEntityVisible(fuelnozzle, false, 0)
+		if Config.qbox then
+			if lib.progressCircle({
+				duration = refueltimer,
+				position = 'bottom',
+				useWhileDead = false,
+				canCancel = true,
+				disable = {
+					car = true,
+					move = true,
+					combat = true
+				},
+				anim = {
+					dict = Config.JerryCanAnimDict,
+					clip = Config.JerryCanAnim
+				},
+			}) then 
 				SetEntityVisible(fuelnozzle, true, 0)
 				DeleteObject(JerrycanProp)
 				StopAnimTask(PlayerPedId(), Config.JerryCanAnimDict, Config.JerryCanAnim, 1.0)
@@ -1329,35 +1354,13 @@ RegisterNetEvent('cdn-fuel:jerrycan:refueljerrycan', function(data)
 					if Config.FuelDebug then print("Config.PlayerOwnedGasStationsEnabled == false or Config.UnlimitedFuel == true, this means reserves will not be changed.") end
 				end
 				TriggerServerEvent('cdn-fuel:server:PayForFuel', tonumber(refuelAmount) * FuelPrice, "cash", FuelPrice)
-			end, function() -- Play When Cancel
+			else 
 				SetEntityVisible(fuelnozzle, true, 0)
 				DeleteObject(JerrycanProp)
 				StopAnimTask(PlayerPedId(), Config.JerryCanAnimDict, Config.JerryCanAnim, 1.0)
 				QBCore.Functions.Notify(Lang:t("cancelled"), 'error')
-			end, "jerrycan")
-		end
-	else
-		local JerryCanMaxRefuel = (Config.JerryCanCap - itemData.info.gasamount)
-		local jerrycanfuelamount = itemData.info.gasamount
-
-		local refuel = lib.inputDialog(Lang:t("input_select_refuel_header"), {Lang:t("input_max_fuel_footer_1") .. JerryCanMaxRefuel .. Lang:t("input_max_fuel_footer_2")})
-
-		if not refuel then return end
-		local refuelAmount = tonumber(refuel[1])
-
-		if refuel then
-			if tonumber(refuelAmount) == 0 then QBCore.Functions.Notify(Lang:t("more_than_zero"), 'error') return elseif tonumber(refuelAmount) < 0 then QBCore.Functions.Notify(Lang:t("more_than_zero"), 'error') return end
-			if tonumber(refuelAmount) + tonumber(jerrycanfuelamount) > Config.JerryCanCap then QBCore.Functions.Notify(Lang:t("jerry_can_not_fit_fuel"), 'error') return end
-			if tonumber(refuelAmount) > Config.JerryCanCap then QBCore.Functions.Notify(Lang:t("jerry_can_not_fit_fuel"), 'error') return end
-			local refueltimer = Config.RefuelTime * tonumber(refuelAmount)
-			if tonumber(refuelAmount) < 10 then refueltimer = Config.RefuelTime * 10 end
-			local price = (tonumber(refuelAmount) * FuelPrice) + GlobalTax(tonumber(refuelAmount) * FuelPrice)
-			if not CanAfford(price, "cash") then QBCore.Functions.Notify(Lang:t("not_enough_money_in_cash"), 'error') return end
-
-			JerrycanProp = CreateObject(GetHashKey('w_am_jerrycan'), 1.0, 1.0, 1.0, true, true, false)
-			local lefthand = GetPedBoneIndex(PlayerPedId(), 18905)
-			AttachEntityToEntity(JerrycanProp, PlayerPedId(), lefthand, 0.11 --[[Left - Right (Kind of)]] , 0.05--[[Up - Down]], 0.27 --[[Forward - Backward]], -15.0, 170.0, -90.42, 0, 1, 0, 1, 0, 1)
-			SetEntityVisible(fuelnozzle, false, 0)
+			end
+		else
 			QBCore.Functions.Progressbar('refuel_gas', Lang:t("prog_jerry_can_refuel"), refueltimer, false,true, { -- Name | Label | Time | useWhileDead | canCancel
 				disableMovement = true,
 				disableCarMovement = true,
@@ -1437,52 +1440,98 @@ RegisterNetEvent('cdn-syphoning:syphon:menu', function(itemData)
 		if GetVehicleBodyHealth(vehicle) < 100 then QBCore.Functions.Notify(Lang:t("vehicle_is_damaged"), 'error') return end
 		local nogas
 		if Config.qbox then
+			print(itemData)
 			if itemData.metadata.cdn_fuel < 1 then nogas = true Nogasstring = Lang:t("menu_syphon_empty") else nogas = false Nogasstring = Lang:t("menu_syphon_refuel") end
 			local syphonfull if itemData.metadata.cdn_fuel == Config.SyphonKitCap then syphonfull = true Stealfuelstring = Lang:t("menu_syphon_kit_full") elseif GetFuel(vehicle) < 1 then syphonfull = true Stealfuelstring = Lang:t("menu_syphon_vehicle_empty") else syphonfull = false Stealfuelstring = Lang:t("menu_syphon_allowed") end -- Disable Options based on item data
+			print(itemData)
 		else
 			if itemData.info.gasamount < 1 then nogas = true Nogasstring = Lang:t("menu_syphon_empty") else nogas = false Nogasstring = Lang:t("menu_syphon_refuel") end
 			local syphonfull if itemData.info.gasamount == Config.SyphonKitCap then syphonfull = true Stealfuelstring = Lang:t("menu_syphon_kit_full") elseif GetFuel(vehicle) < 1 then syphonfull = true Stealfuelstring = Lang:t("menu_syphon_vehicle_empty") else syphonfull = false Stealfuelstring = Lang:t("menu_syphon_allowed") end -- Disable Options based on item data
 		end
-		exports['qb-menu']:openMenu({
-			{
-				header = "Syphoning Kit",
-				isMenuHeader = true,
-			},
-			{
-				header = Lang:t("menu_syphon_header"),
-				txt = Stealfuelstring,
-				params = {
-					event = "cdn-syphoning:syphon",
-					args = {
-						itemData = itemData,
-						reason = "syphon",
+
+		if Config.qbox then
+			lib.registerContext({
+				id = 'syphoningmenu',
+				title = 'Syphoning Kit',
+				options = {
+					{
+						title = Lang:t("menu_syphon_header"),
+						description = Stealfuelstring,
+						icon = "fas fa-fire-flame-simple",
+						arrow = false, -- puts arrow to the right
+						event = 'cdn-syphoning:syphon',
+						args = {
+							itemData = itemData,
+							reason = "syphon",
+						},
+						disabled = syphonfull,
+					},
+					{
+						title = Lang:t("menu_syphon_refuel_header"),
+						description = Nogasstring,
+						icon = "fas fa-gas-pump",
+						arrow = false, -- puts arrow to the right
+						event = 'cdn-syphoning:syphon',
+						args = {
+							itemData = itemData,
+							reason = "refuel",
+						},
+						disabled = nogas,
+					},
+					{
+						title = Lang:t("menu_header_close"),
+						description = Lang:t("menu_refuel_cancel"),
+						icon = "fas fa-times-circle",
+						arrow = false, -- puts arrow to the right
+						onSelect = function()
+							lib.hideContext()
+						end,
 					},
 				},
-				icon = "fas fa-fire-flame-simple",
-				disabled = syphonfull,
-			},
-			{
-				header = Lang:t("menu_syphon_refuel_header"),
-				txt = Nogasstring,
-				icon = "fas fa-gas-pump",
-				params = {
-					event = "cdn-syphoning:syphon",
-					args = {
-						itemData = itemData,
-						reason = "refuel",
-					},
+			})
+			lib.showContext('syphoningmenu')
+		else
+			exports['qb-menu']:openMenu({
+				{
+					header = "Syphoning Kit",
+					isMenuHeader = true,
 				},
-				disabled = nogas,
-			},
-			{
-				header = Lang:t("menu_header_close"),
-				txt = Lang:t("menu_syphon_cancel"),
-				icon = "fas fa-times-circle",
-				params = {
-					event = "qb-menu:closeMenu",
-				}
-			},
-		})
+				{
+					header = Lang:t("menu_syphon_header"),
+					txt = Stealfuelstring,
+					params = {
+						event = "cdn-syphoning:syphon",
+						args = {
+							itemData = itemData,
+							reason = "syphon",
+						},
+					},
+					icon = "fas fa-fire-flame-simple",
+					disabled = syphonfull,
+				},
+				{
+					header = Lang:t("menu_syphon_refuel_header"),
+					txt = Nogasstring,
+					icon = "fas fa-gas-pump",
+					params = {
+						event = "cdn-syphoning:syphon",
+						args = {
+							itemData = itemData,
+							reason = "refuel",
+						},
+					},
+					disabled = nogas,
+				},
+				{
+					header = Lang:t("menu_header_close"),
+					txt = Lang:t("menu_syphon_cancel"),
+					icon = "fas fa-times-circle",
+					params = {
+						event = "qb-menu:closeMenu",
+					}
+				},
+			})
+		end
 	end
 end)
 

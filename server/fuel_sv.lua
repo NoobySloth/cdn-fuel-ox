@@ -102,12 +102,9 @@ RegisterNetEvent("cdn-fuel:server:purchase:jerrycan", function(purchasetype)
 	if Config.qbox then
 		local info = {cdn_fuel = tostring(Config.JerryCanGas)}
 		exports.ox_inventory:AddItem(src, 'jerrycan', 1, info)
-		print('gave item')
 		local hasItem = exports.ox_inventory:GetItem(src, 'jerrycan', info, 1)
 		if hasItem then
-			print('has item')
 			Player.Functions.RemoveMoney(moneyremovetype, total, Lang:t("jerry_can_payment_label"))
-			print('removed money')
 		end
 	else
 		local info = {gasamount = Config.JerryCanGas}
@@ -144,7 +141,6 @@ RegisterNetEvent('cdn-fuel:info', function(type, amount, srcPlayerData, itemdata
 		elseif itemdata == "syphoningkit" then
 			if amount < 1 or amount > Config.SyphonKitCap then if Config.SyphonDebug then print("Error, amount is invalid (< 1 or > "..Config.SyphonKitCap..")! Amount:" ..amount) end return end
 		end
-		print(itemdata)
 		local jerry_can = exports.ox_inventory:Search(source, 1, itemdata)
 		for k, v in pairs(jerry_can) do
 			jerry_can = v
