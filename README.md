@@ -18,6 +18,7 @@ Major shoutout to the Project Sloth team. We based this script off of their wond
 - [qb-input](https://github.com/qbcore-framework/qb-input)
 - [interact-sound](https://github.com/plunkettscott/interact-sound)
 - [PolyZone](https://github.com/qbcore-framework/PolyZone)
+- [ox_lib](https://github.com/overextended/ox_lib)
 - _Other dependencies are included in the resource._
 
 <br>
