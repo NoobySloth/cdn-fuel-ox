@@ -127,6 +127,10 @@ end
 if Config.UseSyphoning then
 	QBCore.Functions.CreateUseableItem("syphoningkit", function(source, item)
 		local src = source
+		if item.metadata.cdn_fuel == nil then
+			item.metadata.cdn_fuel = '0'
+			ox_inventory:SetMetadata(src, item.slot, item.metadata)
+		end
 		TriggerClientEvent('cdn-syphoning:syphon:menu', src, item)
 	end)
 end
