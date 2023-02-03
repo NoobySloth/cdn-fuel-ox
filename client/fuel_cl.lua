@@ -946,9 +946,14 @@ RegisterNetEvent('cdn-fuel:jerrycan:refuelmenu', function(itemData)
 	local vehiclecoords = GetEntityCoords(vehicle)
 	local pedcoords = GetEntityCoords(PlayerPedId())
 	if GetVehicleBodyHealth(vehicle) < 100 then QBCore.Functions.Notify(Lang:t("vehicle_is_damaged"), 'error') return end
+	if Config.qbox then
+		local jerrycanamount = itemData.metadata.cdn_fuel
+	else
+		local jerrycanamount = itemData.info.gasamount
+	end
 	if holdingnozzle then
 		local fulltank
-		if itemData.info.gasamount == Config.JerryCanCap then fulltank = true
+		if jerrycanamount == Config.JerryCanCap then fulltank = true
 			GasString = Lang:t("menu_jerry_can_footer_full_gas")
 		else fulltank = false
 			GasString = Lang:t("menu_jerry_can_footer_refuel_gas")
@@ -978,7 +983,7 @@ RegisterNetEvent('cdn-fuel:jerrycan:refuelmenu', function(itemData)
 	else
 		if #(vehiclecoords - pedcoords) > 2.5 then return end
 		local nogas
-		if itemData.info.gasamount < 1 then nogas = true
+		if jerrycanamount < 1 then nogas = true
 			GasString = Lang:t("menu_jerry_can_footer_no_gas")
 		else nogas = false
 			GasString = Lang:t("menu_jerry_can_footer_use_gas")
@@ -1065,7 +1070,11 @@ RegisterNetEvent('cdn-fuel:jerrycan:refuelvehicle', function(data)
 	local vehfuel = math.floor(GetFuel(vehicle))
 	local maxvehrefuel = (100 - math.ceil(vehfuel))
 	local itemData = data.itemData
-	local jerrycanfuelamount = itemData.info.gasamount
+	if Config.qbox then
+		local jerrycanfuelamount = itemData.metadata.cdn_fuel
+	else
+		local jerrycanfuelamount = itemData.info.gasamount
+	end
 	local vehicle = QBCore.Functions.GetClosestVehicle()
 	local NotElectric = false
 	if Config.ElectricVehicleCharging then
@@ -1137,8 +1146,13 @@ RegisterNetEvent('cdn-fuel:jerrycan:refueljerrycan', function(data)
 	end
 
 	local itemData = data.itemData
-	local JerryCanMaxRefuel = (Config.JerryCanCap - itemData.info.gasamount)
-	local jerrycanfuelamount = itemData.info.gasamount
+	if Config.qbox then
+		local JerryCanMaxRefuel = (Config.JerryCanCap - itemData.metadata.cdn_fuel)
+		local jerrycanfuelamount = itemData.metadata.cdn_fuel
+	else
+		local JerryCanMaxRefuel = (Config.JerryCanCap - itemData.info.gasamount)
+		local jerrycanfuelamount = itemData.info.gasamount
+	end
 
 	local refuel = lib.inputDialog(Lang:t("input_select_refuel_header"), {Lang:t("input_max_fuel_footer_1") .. JerryCanMaxRefuel .. Lang:t("input_max_fuel_footer_2")})
 
@@ -1235,8 +1249,13 @@ RegisterNetEvent('cdn-syphoning:syphon:menu', function(itemData)
 		if #(vehiclecoords - pedcoords) > 2.5 then return end
 		if GetVehicleBodyHealth(vehicle) < 100 then QBCore.Functions.Notify(Lang:t("vehicle_is_damaged"), 'error') return end
 		local nogas
-		if itemData.info.gasamount < 1 then nogas = true Nogasstring = Lang:t("menu_syphon_empty") else nogas = false Nogasstring = Lang:t("menu_syphon_refuel") end
-		local syphonfull if itemData.info.gasamount == Config.SyphonKitCap then syphonfull = true Stealfuelstring = Lang:t("menu_syphon_kit_full") elseif GetFuel(vehicle) < 1 then syphonfull = true Stealfuelstring = Lang:t("menu_syphon_vehicle_empty") else syphonfull = false Stealfuelstring = Lang:t("menu_syphon_allowed") end -- Disable Options based on item data
+		if Config.qbox then
+			if itemData.metadata.cdn_fuel < 1 then nogas = true Nogasstring = Lang:t("menu_syphon_empty") else nogas = false Nogasstring = Lang:t("menu_syphon_refuel") end
+			local syphonfull if itemData.metadata.cdn_fuel == Config.SyphonKitCap then syphonfull = true Stealfuelstring = Lang:t("menu_syphon_kit_full") elseif GetFuel(vehicle) < 1 then syphonfull = true Stealfuelstring = Lang:t("menu_syphon_vehicle_empty") else syphonfull = false Stealfuelstring = Lang:t("menu_syphon_allowed") end -- Disable Options based on item data
+		else
+			if itemData.info.gasamount < 1 then nogas = true Nogasstring = Lang:t("menu_syphon_empty") else nogas = false Nogasstring = Lang:t("menu_syphon_refuel") end
+			local syphonfull if itemData.info.gasamount == Config.SyphonKitCap then syphonfull = true Stealfuelstring = Lang:t("menu_syphon_kit_full") elseif GetFuel(vehicle) < 1 then syphonfull = true Stealfuelstring = Lang:t("menu_syphon_vehicle_empty") else syphonfull = false Stealfuelstring = Lang:t("menu_syphon_allowed") end -- Disable Options based on item data
+		end
 		exports['qb-menu']:openMenu({
 			{
 				header = "Syphoning Kit",
@@ -1299,7 +1318,11 @@ RegisterNetEvent('cdn-syphoning:syphon', function(data)
 	Wait(50)
 	if NotElectric then
 		if HasSyphon then
-			local currentsyphonamount = data.itemData.info.gasamount
+			if Config.qbox then
+				local currentsyphonamount = data.itemData.metadata.cdn_fuel
+			else
+				local currentsyphonamount = data.itemData.info.gasamount
+			end
 			local fitamount = (Config.SyphonKitCap - currentsyphonamount)
 			local vehicle = QBCore.Functions.GetClosestVehicle()
 			local vehiclecoords = GetEntityCoords(vehicle)
