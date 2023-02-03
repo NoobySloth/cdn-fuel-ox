@@ -29,7 +29,7 @@ RegisterNetEvent("cdn-fuel:server:OpenMenu", function(amount, inGasStation, hasW
 		if Config.RenewedPhonePayment and purchasetype == "bank" then
 			TriggerClientEvent("cdn-fuel:client:phone:PayForFuel", src, fuelamounttotal)
 		else
-			if Config.ox_framework then
+			if Config.qbox then
 					TriggerClientEvent('cdn-fuel:client:OpenContextMenu', src, total, fuelamounttotal, purchasetype)
 			else
 				TriggerClientEvent('qb-menu:client:openMenu', src, {
@@ -51,14 +51,14 @@ RegisterNetEvent("cdn-fuel:server:OpenMenu", function(amount, inGasStation, hasW
 						params = {
 							event = "cdn-fuel:client:RefuelVehicle",
 							args = {
-								fuelamounttotal = fuelamounttotal, 
+								fuelamounttotal = fuelamounttotal,
 								purchasetype = purchasetype,
 							}
 						}
 					},
 					{
 						header = Lang:t("menu_header_close"),
-						txt = Lang:t("menu_refuel_cancel"), 
+						txt = Lang:t("menu_refuel_cancel"),
 						icon = "fas fa-times-circle",
 						params = {
 							event = "qb-menu:closeMenu",
@@ -101,7 +101,7 @@ RegisterNetEvent("cdn-fuel:server:purchase:jerrycan", function(purchasetype)
 	end
 	local info = {gasamount = Config.JerryCanGas,}
 	if Player.Functions.AddItem("jerrycan", 1, false, info) then -- Dont remove money if AddItem() not possible!
-		TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items['jerrycan'], "add") 
+		TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items['jerrycan'], "add")
 		Player.Functions.RemoveMoney(moneyremovetype, total, Lang:t("jerry_can_payment_label"))
 	end
 end)
@@ -126,12 +126,12 @@ RegisterNetEvent('cdn-fuel:info', function(type, amount, srcPlayerData, itemdata
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     local srcPlayerData = srcPlayerData
-	if itemdata.info.name == "jerrycan" then 
+	if itemdata.info.name == "jerrycan" then
 		if amount < 1 or amount > Config.JerryCanCap then if Config.FuelDebug then print("Error, amount is invalid (< 1 or > "..Config.SyphonKitCap..")! Amount:" ..amount) end return end
 	elseif itemdata.info.name == "syphoningkit" then
 		if amount < 1 or amount > Config.SyphonKitCap then if Config.SyphonDebug then print("Error, amount is invalid (< 1 or > "..Config.SyphonKitCap..")! Amount:" ..amount) end return end
 	end
-    
+
     if type == "add" then
         srcPlayerData.items[itemdata.slot].info.gasamount = srcPlayerData.items[itemdata.slot].info.gasamount + amount
         Player.Functions.SetInventory(srcPlayerData.items)

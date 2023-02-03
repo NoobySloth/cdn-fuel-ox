@@ -159,7 +159,7 @@ if Config.ShowNearestGasStationOnly then
 			local closestCoords
 			local closestLocation
 			local location = 0
-			local label = "Gas Station" -- Prevent nil just in case, set default name. 
+			local label = "Gas Station" -- Prevent nil just in case, set default name.
 			for _, ourCoords in pairs(Config.GasStations) do
 				location = location + 1
 				if not (location > #Config.GasStations) then -- Make sure we are not going over the amount of locations available.
@@ -284,15 +284,15 @@ end
 
 RegisterNetEvent('cdn-fuel:client:RefuelMenu', function()
 	if Config.RenewedPhonePayment then
-		if not RefuelPossible then 
+		if not RefuelPossible then
 			TriggerEvent('cdn-fuel:client:SendMenuToServer')
-		else 
+		else
 			if Config.RenewedPhonePayment then
 				if not Cancelledrefuel and not RefuelCancelled then
 					if RefuelPossibleAmount then
 						local purchasetype = "bank"
 						local fuelamounttotal = tonumber(RefuelPossibleAmount)
-						TriggerEvent('cdn-fuel:client:RefuelVehicle', purchasetype, fuelamounttotal) 
+						TriggerEvent('cdn-fuel:client:RefuelVehicle', purchasetype, fuelamounttotal)
 					else
 						QBCore.Functions.Notify(Lang:t("more_than_zero"), 'error', 7500)
 					end
@@ -363,8 +363,8 @@ end)
 
 RegisterNetEvent('cdn-fuel:client:returnnozzle', function()
 	if Config.ElectricVehicleCharging then
-		if IsHoldingElectricNozzle() then 
-			SetElectricNozzle("putback") 
+		if IsHoldingElectricNozzle() then
+			SetElectricNozzle("putback")
 		else
 			holdingnozzle = false
 			TargetCreated = false
@@ -411,7 +411,7 @@ RegisterNetEvent('cdn-fuel:client:OpenContextMenu', function(total, fuelamountto
 				arrow = false, -- puts arrow to the right
 				event = 'cdn-fuel:client:RefuelVehicle',
 				args = {
-					fuelamounttotal = fuelamounttotal, 
+					fuelamounttotal = fuelamounttotal,
 					purchasetype = purchasetype,
 				}
 			},
@@ -433,7 +433,7 @@ end)
 RegisterNetEvent('cdn-fuel:client:FinalMenu', function(purchasetype)
 	FetchStationInfo("all")
 	Wait(100)
-	if Config.PlayerOwnedGasStationsEnabled and not Config.UnlimitedFuel then 
+	if Config.PlayerOwnedGasStationsEnabled and not Config.UnlimitedFuel then
 		if ReserveLevels < 1 then
 			QBCore.Functions.Notify(Lang:t("station_no_fuel"), 'error', 7500) return
 		end
@@ -452,22 +452,22 @@ RegisterNetEvent('cdn-fuel:client:FinalMenu', function(purchasetype)
 	local maxfuel = (100 - finalfuel - 1)
 	local wholetankcost = (FuelPrice * maxfuel)
 	local wholetankcostwithtax = math.ceil(FuelPrice * maxfuel + GlobalTax(wholetankcost))
-	if Config.ox_framework then
+	if Config.qbox then
 		if Config.PlayerOwnedGasStationsEnabled and not Config.UnlimitedFuel then
 			if ReserveLevels < maxfuel then
 				local wholetankcost = (FuelPrice * ReserveLevels)
 				local wholetankcostwithtax = math.ceil(FuelPrice * ReserveLevels + GlobalTax(wholetankcost))
 				fuel = lib.inputDialog('Gas Station', {{ type = "input", label = "Current Price: $" .. FuelPrice .. " / Litre \n\n Current Fuel: " .. finalfuel .. " Litres \n\n Full Tank Cost: $" ..	wholetankcostwithtax .. " \n\nOnly "..ReserveLevels.." Litres are available", default = ReserveLevels }})
-	
+
 				fuelAmount = tonumber(fuel[1])
 			else
 				fuel = lib.inputDialog('Gas Station', {{ type = "input", label = "Current Price: $" .. FuelPrice .. " / Litre \n\n Current Fuel: " .. finalfuel .. " Litres \n\n Full Tank Cost: $" ..	wholetankcostwithtax .. " \n\nThe Tank Can Hold " .. maxfuel .. " More Litres.", default = maxfuel }})
-	
+
 				fuelAmount = tonumber(fuel[1])
 			end
 		else
 			fuel = lib.inputDialog('Gas Station', {{ type = "input", label = "Current Price: $" .. FuelPrice .. " / Litre \n\n Current Fuel: " .. finalfuel .. " Litres \n\n Full Tank Cost: $" ..	wholetankcostwithtax .. " \n\nThe Tank Can Hold " .. maxfuel .. " More Litres.", default = maxfuel }})
-	
+
 			fuelAmount = tonumber(fuel[1])
 		end
 		if fuel then
@@ -519,7 +519,7 @@ RegisterNetEvent('cdn-fuel:client:FinalMenu', function(purchasetype)
 						name = 'amount',
 						text = 'The Tank Can Hold ' .. maxfuel .. ' More Liters.'
 					}}
-				})	
+				})
 			end
 		else
 			fuel = exports['qb-input']:ShowInput({
@@ -533,7 +533,7 @@ RegisterNetEvent('cdn-fuel:client:FinalMenu', function(purchasetype)
 					name = 'amount',
 					text = 'The Tank Can Hold ' .. maxfuel .. ' More Liters.'
 				}}
-			})	
+			})
 		end
 		if fuel then
 			if not fuel.amount then return end
@@ -571,7 +571,7 @@ RegisterNetEvent('cdn-fuel:client:SendMenuToServer', function()
 	if Config.ElectricVehicleCharging then
 		local isElectric = GetCurrentVehicleType(vehicle)
 		if isElectric == 'electricvehicle' then
-			QBCore.Functions.Notify(Lang:t("need_electric_charger"), 'error', 7500) return 
+			QBCore.Functions.Notify(Lang:t("need_electric_charger"), 'error', 7500) return
 		end
 		NotElectric = true
 	else
@@ -583,7 +583,7 @@ RegisterNetEvent('cdn-fuel:client:SendMenuToServer', function()
 		local playercashamount = QBCore.Functions.GetPlayerData().money['cash']
 		if not holdingnozzle then return end
 		if CurFuel < 95 then
-			if Config.ox_framework then
+			if Config.qbox then
 				lib.registerContext({
 					id = 'cdnfueldmainmenu',
 					title = 'Gas Station',
@@ -661,25 +661,25 @@ end)
 RegisterNetEvent('cdn-fuel:client:RefuelVehicle', function(data)
 	FetchStationInfo("all")
 	Wait(100)
-	
+
 	local purchasetype
 	local amount
 	local fuelamount
 
-	if not Config.RenewedPhonePayment then 
-		purchasetype = data.purchasetype 
-	elseif data.purchasetype == "cash" then 
+	if not Config.RenewedPhonePayment then
+		purchasetype = data.purchasetype
+	elseif data.purchasetype == "cash" then
 		purchasetype = "cash"
 	else
 		purchasetype = RefuelPurchaseType
 	end
 	if Config.FuelDebug then print("Purchase Type: "..purchasetype) end
-	if not Config.RenewedPhonePayment then 
-		amount = data.fuelamounttotal 
+	if not Config.RenewedPhonePayment then
+		amount = data.fuelamounttotal
 	elseif data.purchasetype == "cash" then
 		amount = data.fuelamounttotal
 	elseif not data.fuelamounttotal then
-		amount = RefuelPossibleAmount 
+		amount = RefuelPossibleAmount
 	end
 	if Config.PlayerOwnedGasStationsEnabled then
 		FuelPrice = (1 * StationFuelPrice)
@@ -745,7 +745,7 @@ RegisterNetEvent('cdn-fuel:client:RefuelVehicle', function(data)
 				end
 			end)
 			TriggerServerEvent("InteractSound_SV:PlayOnSource", "refuel", 0.3)
-			if Config.ox_framework then
+			if Config.qbox then
 				if lib.progressCircle({
 					duration = time,
 					position = 'bottom',
@@ -755,10 +755,10 @@ RegisterNetEvent('cdn-fuel:client:RefuelVehicle', function(data)
 						move = true,
 						combat = true
 					},
-				}) then 
+				}) then
 					refueling = false
 					if purchasetype == "cash" then
-						TriggerServerEvent('cdn-fuel:server:PayForFuel', refillCost, purchasetype, FuelPrice) 
+						TriggerServerEvent('cdn-fuel:server:PayForFuel', refillCost, purchasetype, FuelPrice)
 					elseif purchasetype == "bank" then
 						exports["npwd"]:createNotification({ -- You can change this export to your own notification
 							notisId = "npwd:fuelTaken",
@@ -769,7 +769,7 @@ RegisterNetEvent('cdn-fuel:client:RefuelVehicle', function(data)
 							duration = 15000,
 							path = "/BANK",
 						})
-						TriggerServerEvent('cdn-fuel:server:PayForFuel', refillCost, purchasetype, FuelPrice) 
+						TriggerServerEvent('cdn-fuel:server:PayForFuel', refillCost, purchasetype, FuelPrice)
 					end
 					local curfuel = GetFuel(vehicle)
 					local finalfuel = (curfuel + fuelamount)
@@ -791,7 +791,7 @@ RegisterNetEvent('cdn-fuel:client:RefuelVehicle', function(data)
 						RefuelPossibleAmount = 0
 						RefuelPurchaseType = "bank"
 					end
-				else 
+				else
 					refueling = false
 					Cancelledrefuel = true
 					StopAnimTask(ped, Config.RefuelAnimationDictionary, Config.RefuelAnimation, 3.0, 3.0, -1, 2, 0, 0, 0, 0)
@@ -805,8 +805,8 @@ RegisterNetEvent('cdn-fuel:client:RefuelVehicle', function(data)
 					disableCombat = true,
 				}, {}, {}, {}, function()
 					refueling = false
-					if not Config.RenewedPhonePayment or purchasetype == "cash" then 
-						TriggerServerEvent('cdn-fuel:server:PayForFuel', refillCost, purchasetype, FuelPrice) 
+					if not Config.RenewedPhonePayment or purchasetype == "cash" then
+						TriggerServerEvent('cdn-fuel:server:PayForFuel', refillCost, purchasetype, FuelPrice)
 					end
 					local curfuel = GetFuel(vehicle)
 					local finalfuel = (curfuel + fuelamount)
@@ -836,8 +836,8 @@ RegisterNetEvent('cdn-fuel:client:RefuelVehicle', function(data)
 				end, "fas fa-gas-pump")
 			end
 		end
-	else 
-		return 
+	else
+		return
 	end
 end)
 
@@ -1071,7 +1071,7 @@ RegisterNetEvent('cdn-fuel:jerrycan:refuelvehicle', function(data)
 	if Config.ElectricVehicleCharging then
 		local isElectric = GetCurrentVehicleType(vehicle)
 		if isElectric == 'electricvehicle' then
-			QBCore.Functions.Notify(Lang:t("need_electric_charger"), 'error', 7500) return 
+			QBCore.Functions.Notify(Lang:t("need_electric_charger"), 'error', 7500) return
 		end
 		NotElectric = true
 	else
@@ -1104,7 +1104,7 @@ RegisterNetEvent('cdn-fuel:jerrycan:refuelvehicle', function(data)
 				disableCarMovement = true,
 				disableMouse = false,
 				disableCombat = true,
-			}, { 
+			}, {
 				animDict = Config.JerryCanAnimDict,
 				anim = Config.JerryCanAnim,
 				flags = 17,
@@ -1123,7 +1123,7 @@ RegisterNetEvent('cdn-fuel:jerrycan:refuelvehicle', function(data)
 			end, "jerrycan")
 		end
 	else
-		QBCore.Functions.Notify(Lang:t("need_electric_charger"), 'error', 7500) return 
+		QBCore.Functions.Notify(Lang:t("need_electric_charger"), 'error', 7500) return
 	end
 end)
 
@@ -1290,7 +1290,7 @@ RegisterNetEvent('cdn-syphoning:syphon', function(data)
 	if Config.ElectricVehicleCharging then
 		local isElectric = GetCurrentVehicleType(vehicle)
 		if isElectric == 'electricvehicle' then
-			QBCore.Functions.Notify(Lang:t("need_electric_charger"), 'error', 7500) return 
+			QBCore.Functions.Notify(Lang:t("need_electric_charger"), 'error', 7500) return
 		end
 		NotElectric = true
 	else
@@ -1417,7 +1417,7 @@ RegisterNetEvent('cdn-syphoning:syphon', function(data)
 			QBCore.Functions.Notify(Lang:t("syphon_no_syphon_kit"), 'error', 7500)
 		end
 	else
-		QBCore.Functions.Notify(Lang:t("need_electric_charger"), 'error', 7500) return 
+		QBCore.Functions.Notify(Lang:t("need_electric_charger"), 'error', 7500) return
 	end
 end)
 
