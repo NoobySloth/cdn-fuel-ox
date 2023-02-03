@@ -126,18 +126,26 @@ RegisterNetEvent('cdn-fuel:info', function(type, amount, srcPlayerData, itemdata
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     local srcPlayerData = srcPlayerData
-	if itemdata.info.name == "jerrycan" then
+	if itemdata == "jerrycan" then 
 		if amount < 1 or amount > Config.JerryCanCap then if Config.FuelDebug then print("Error, amount is invalid (< 1 or > "..Config.SyphonKitCap..")! Amount:" ..amount) end return end
-	elseif itemdata.info.name == "syphoningkit" then
+	elseif itemdata == "syphoningkit" then
 		if amount < 1 or amount > Config.SyphonKitCap then if Config.SyphonDebug then print("Error, amount is invalid (< 1 or > "..Config.SyphonKitCap..")! Amount:" ..amount) end return end
 	end
-
+	print(itemdata)
+	local jerry_can = exports.ox_inventory:Search(source, 1, itemdata)
+	for k, v in pairs(jerry_can) do
+        jerry_can = v
+        break
+    end
+	local fuel_amount = tonumber(jerry_can.metadata.cdn_fuel)
     if type == "add" then
-        srcPlayerData.items[itemdata.slot].info.gasamount = srcPlayerData.items[itemdata.slot].info.gasamount + amount
-        Player.Functions.SetInventory(srcPlayerData.items)
+        fuel_amount = fuel_amount + amount
+		jerry_can.metadata.cdn_fuel = tostring(fuel_amount)
+		exports.ox_inventory:SetMetadata(src, jerry_can.slot, jerry_can.metadata)
     elseif type == "remove" then
-        srcPlayerData.items[itemdata.slot].info.gasamount = srcPlayerData.items[itemdata.slot].info.gasamount - amount
-        Player.Functions.SetInventory(srcPlayerData.items)
+        fuel_amount = fuel_amount - amount
+		jerry_can.metadata.cdn_fuel = tostring(fuel_amount)
+        exports.ox_inventory:SetMetadata(src, jerry_can.slot, jerry_can.metadata)
     else
         if Config.SyphonDebug then print("error, type is invalid!") end
     end
