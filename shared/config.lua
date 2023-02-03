@@ -15,7 +15,7 @@ Config.qbox = true  -- Are you using qbox?
 
 -- Syphoning --
 Config.UseSyphoning = true -- Follow the Syphoning Install Guide to enable this option!
-Config.SyphonDebug = true -- Used for Debugging the syphon portion!
+Config.SyphonDebug = false -- Used for Debugging the syphon portion!
 Config.SyphonFuelDecor = Config.FuelDecor -- Do not touch! (Default: "_FUEL_LEVEL")
 Config.SyphonKitCap = 50 -- Maximum amount (in L) the syphon kit can fit!
 Config.SyphonPoliceCallChance = 25 -- Math.Random(1, 100) Default: 25%
@@ -54,10 +54,11 @@ Config.WaitTime = 100 -- This is the wait time after callbacks, if you are havin
 
 -- Phone --
 Config.RenewedPhonePayment = false -- When true, payments will be sent to the players phone with a notification, giving them the opportunity to accept or decline payment. If the cancel after paying for fuel, money will be returned.
+Config.NPWD = true -- Are you using NPWD? (only bank notifications, requires https://github.com/npwd-community/npwd_qb_banking)
 
 --- Electric Vehicles
 Config.ElectricVehicleCharging = true -- When true, electric vehicles will actually consume resources and decrease 'Fuel / Battery' while driving. This means players will have to recharge their vehicle!
-Config.ElectricChargingPrice = 4 -- Per "KW". This value is multiplied times the amount of electricity someone put into their vehicle, to constitute the final cost of the charge. Players whom own the gas station will not recieve the money from electric charging.
+Config.ElectricChargingPrice = 2 -- Per "KW". This value is multiplied times the amount of electricity someone put into their vehicle, to constitute the final cost of the charge. Players whom own the gas station will not recieve the money from electric charging.
 Config.ElectricVehicles = { -- The list of Electric Vehicles in the base game. You can add more if needed, use the Vehicle's Spawn Name
     "surge",
     "iwagen",

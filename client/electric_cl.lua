@@ -16,6 +16,12 @@ if Config.ElectricVehicleCharging then
     end)
 
     -- Functions
+
+    local function GlobalTax(value)
+        local tax = (value / 100 * Config.GlobalTax)
+        return tax
+    end
+
     function IsHoldingElectricNozzle()
         return HoldingElectricNozzle
     end exports('IsHoldingElectricNozzle', IsHoldingElectricNozzle)
@@ -38,6 +44,36 @@ if Config.ElectricVehicleCharging then
 
     
     -- Events
+    RegisterNetEvent('cdn-electric:client:OpenContextMenu', function(total, fuelamounttotal, purchasetype)
+        lib.registerContext({
+            id = 'electricconfirmationmenu',
+            title = Lang:t("menu_purchase_station_header_1")..total..Lang:t("menu_purchase_station_header_2"),
+            options = {
+                {
+                    title = Lang:t("menu_purchase_station_confirm_header"),
+                    description = Lang:t("menu_electric_accept"),
+                    icon = "fas fa-check-circle",
+                    arrow = false, -- puts arrow to the right
+                    event = 'cdn-fuel:client:electric:ChargeVehicle',
+                    args = {
+                        fuelamounttotal = fuelamounttotal,
+                        purchasetype = purchasetype,
+                    }
+                },
+                {
+                    title = Lang:t("menu_header_close"),
+                    description = Lang:t("menu_refuel_cancel"),
+                    icon = "fas fa-times-circle",
+                    arrow = false, -- puts arrow to the right
+                    onSelect = function()
+                        lib.hideContext()
+                      end,
+                },
+            },
+        })
+        lib.showContext('electricconfirmationmenu')
+    end)
+    
     RegisterNetEvent('cdn-fuel:client:electric:FinalMenu', function(purchasetype)
         local money = nil
         if purchasetype == "bank" then money = QBCore.Functions.GetPlayerData().money['bank'] elseif purchasetype == 'cash' then money = QBCore.Functions.GetPlayerData().money['cash'] end
@@ -49,29 +85,67 @@ if Config.ElectricVehicleCharging then
         local maxfuel = (100 - finalfuel - 1)
         local wholetankcost = (FuelPrice * maxfuel)
         local wholetankcostwithtax = math.ceil(FuelPrice * maxfuel + GlobalTax(wholetankcost))
-        Electricity = exports['qb-input']:ShowInput({
-            header = "Select the Amount of Fuel<br>Current Price: $" ..
-            FuelPrice .. " / KWh <br> Current Charge: " .. finalfuel .. " KWh <br> Full Charge Cost: $" ..
-            wholetankcostwithtax .. "",
-            submitText = "Insert Charger",
-            inputs = {{
-                type = 'number',
-                isRequired = true,
-                name = 'amount',
-                text = 'The Battery Can Hold ' .. maxfuel .. ' More KWh.'
-            }}
-        })	
-        if Electricity then
-            if not Electricity.amount then print("Electricity.amount is invalid!") return end
-            if not HoldingElectricNozzle then QBCore.Functions.Notify(Lang:t("electric_no_nozzle"), 'error', 7500) return end
-            if (Electricity.amount + finalfuel) >= 100 then
-                QBCore.Functions.Notify(Lang:t("tank_already_full"), "error")
-            else
-                if GlobalTax(Electricity.amount * FuelPrice) + (Electricity.amount * FuelPrice) <= money then
-                    local totalcost = (Electricity.amount * FuelPrice)
-                    TriggerServerEvent('cdn-fuel:server:electric:OpenMenu', totalcost, IsInGasStation(), false, purchasetype, FuelPrice)
+
+        if Config.qbox then
+            Electricity = lib.inputDialog('Electric Charger', {
+                { type = "input", label = 'Electric Price',
+                default = '$'.. FuelPrice .. '/KWh',
+                disabled = true },
+                { type = "input", label = 'Current Charge',
+                default = finalfuel .. ' KWh',
+                disabled = true },
+                { type = "input", label = 'Required Full Charge',
+                default = maxfuel,
+                disabled = true },
+                { type = "slider", label = 'Full Charge Cost: $' ..wholetankcostwithtax.. '',
+                default = maxfuel, 
+                min = 0, 
+                max = maxfuel 
+                },
+            })
+
+            if not Electricity then return end
+            ElectricityAmount = tonumber(Electricity[4])
+
+            if Electricity then
+                if not ElectricityAmount then print("ElectricityAmount is invalid!") return end
+                if not HoldingElectricNozzle then QBCore.Functions.Notify(Lang:t("electric_no_nozzle"), 'error', 7500) return end
+                if (ElectricityAmount + finalfuel) >= 100 then
+                    QBCore.Functions.Notify(Lang:t("tank_already_full"), "error")
                 else
-                    QBCore.Functions.Notify(Lang:t("not_enough_money"), 'error', 7500)
+                    if GlobalTax(ElectricityAmount * FuelPrice) + (ElectricityAmount * FuelPrice) <= money then
+                        local totalcost = (ElectricityAmount * FuelPrice)
+                        TriggerServerEvent('cdn-fuel:server:electric:OpenMenu', totalcost, IsInGasStation(), false, purchasetype, FuelPrice)
+                    else
+                        QBCore.Functions.Notify(Lang:t("not_enough_money"), 'error', 7500)
+                    end
+                end
+            end
+        else
+            Electricity = exports['qb-input']:ShowInput({
+                header = "Select the Amount of Fuel<br>Current Price: $" ..
+                FuelPrice .. " / KWh <br> Current Charge: " .. finalfuel .. " KWh <br> Full Charge Cost: $" ..
+                wholetankcostwithtax .. "",
+                submitText = "Insert Charger",
+                inputs = {{
+                    type = 'number',
+                    isRequired = true,
+                    name = 'amount',
+                    text = 'The Battery Can Hold ' .. maxfuel .. ' More KWh.'
+                }}
+            })
+            if Electricity then
+                if not Electricity.amount then print("Electricity.amount is invalid!") return end
+                if not HoldingElectricNozzle then QBCore.Functions.Notify(Lang:t("electric_no_nozzle"), 'error', 7500) return end
+                if (Electricity.amount + finalfuel) >= 100 then
+                    QBCore.Functions.Notify(Lang:t("tank_already_full"), "error")
+                else
+                    if GlobalTax(Electricity.amount * FuelPrice) + (Electricity.amount * FuelPrice) <= money then
+                        local totalcost = (Electricity.amount * FuelPrice)
+                        TriggerServerEvent('cdn-fuel:server:electric:OpenMenu', totalcost, IsInGasStation(), false, purchasetype, FuelPrice)
+                    else
+                        QBCore.Functions.Notify(Lang:t("not_enough_money"), 'error', 7500)
+                    end
                 end
             end
         end
@@ -89,39 +163,74 @@ if Config.ElectricVehicleCharging then
             local playercashamount = QBCore.Functions.GetPlayerData().money['cash']
             if not IsHoldingElectricNozzle() then QBCore.Functions.Notify(Lang:t("electric_no_nozzle"), 'error', 7500)  return end
             if CurFuel < 95 then
-                exports['qb-menu']:openMenu({
-                    {
-                        header = Config.GasStations[FetchCurrentLocation()].label,
-                        isMenuHeader = true,
-                        icon = "fas fa-bolt",
-                    },
-                    {
-                        header = Lang:t("menu_header_cash"),
-                        txt = Lang:t("menu_pay_with_cash") .. playercashamount,
-                        icon = "fas fa-usd",
-                        params = {
-                            event = "cdn-fuel:client:electric:FinalMenu",
-                            args = 'cash',
-                        }
-                    },
-                    {
-                        header = Lang:t("menu_header_bank"),
-                        txt = Lang:t("menu_pay_with_bank"),
-                        icon = "fas fa-credit-card",
-                        params = {
-                            event = "cdn-fuel:client:electric:FinalMenu",
-                            args = 'bank',
-                        }
-                    },
-                    {
-                        header = Lang:t("menu_header_close"),
-                        txt = Lang:t("menu_electric_cancel"),
-                        icon = "fas fa-times-circle",
-                        params = {
-                            event = "qb-menu:closeMenu",
-                        }
-                    },
-                })
+                if Config.qbox then
+                    lib.registerContext({
+                        id = 'electricmenu',
+                        title = Config.GasStations[FetchCurrentLocation()].label,
+                        options = {
+                            {
+                                title = Lang:t("menu_header_cash"),
+                                description = Lang:t("menu_pay_with_cash") .. playercashamount,
+                                icon = "fas fa-usd",
+                                arrow = false, -- puts arrow to the right
+                                event = "cdn-fuel:client:electric:FinalMenu",
+                                args = 'cash',
+                            },
+                            {
+                                title = Lang:t("menu_header_bank"),
+                                description = Lang:t("menu_pay_with_bank"),
+                                icon = "fas fa-credit-card",
+                                arrow = false, -- puts arrow to the right
+                                event = "cdn-fuel:client:electric:FinalMenu",
+                                args = 'bank',
+                            },
+                            {
+                                title = Lang:t("menu_header_close"),
+                                description = Lang:t("menu_refuel_cancel"),
+                                icon = "fas fa-times-circle",
+                                arrow = false, -- puts arrow to the right
+                                onSelect = function()
+                                    lib.hideContext()
+                                end,
+                            },
+                        },
+                    })
+                    lib.showContext('electricmenu')
+                else
+                    exports['qb-menu']:openMenu({
+                        {
+                            header = Config.GasStations[FetchCurrentLocation()].label,
+                            isMenuHeader = true,
+                            icon = "fas fa-bolt",
+                        },
+                        {
+                            header = Lang:t("menu_header_cash"),
+                            txt = Lang:t("menu_pay_with_cash") .. playercashamount,
+                            icon = "fas fa-usd",
+                            params = {
+                                event = "cdn-fuel:client:electric:FinalMenu",
+                                args = 'cash',
+                            }
+                        },
+                        {
+                            header = Lang:t("menu_header_bank"),
+                            txt = Lang:t("menu_pay_with_bank"),
+                            icon = "fas fa-credit-card",
+                            params = {
+                                event = "cdn-fuel:client:electric:FinalMenu",
+                                args = 'bank',
+                            }
+                        },
+                        {
+                            header = Lang:t("menu_header_close"),
+                            txt = Lang:t("menu_electric_cancel"),
+                            icon = "fas fa-times-circle",
+                            params = {
+                                event = "qb-menu:closeMenu",
+                            }
+                        },
+                    })
+                end
             else
                 QBCore.Functions.Notify(Lang:t("tank_already_full"), 'error')
             end
@@ -228,34 +337,86 @@ if Config.ElectricVehicleCharging then
                     end
                 end)
                 TriggerServerEvent("InteractSound_SV:PlayOnSource", "charging", 0.3)
-                QBCore.Functions.Progressbar("charge-car", Lang:t("prog_electric_charging"), time, false, true, {
-                    disableMovement = true,
-                    disableCarMovement = true,
-                    disableMouse = false,
-                    disableCombat = true,
-                }, {}, {}, {}, function()
-                    refueling = false
-                    if not Config.RenewedPhonePayment or purchasetype == 'cash' then TriggerServerEvent('cdn-fuel:server:PayForFuel', refillCost, purchasetype, FuelPrice) end
-                    local curfuel = GetFuel(vehicle)
-                    local finalfuel = (curfuel + fuelamount)
-                    if finalfuel > 99 and finalfuel < 100 then
-                        SetFuel(vehicle, 100)
+                if Config.qbox then
+                    if lib.progressCircle({
+                        duration = time,
+                        position = 'bottom',
+                        useWhileDead = false,
+                        canCancel = true,
+                        disable = {
+                            move = true,
+                            combat = true
+                        },
+                    }) then
+                        refueling = false
+                        if purchasetype == "cash" then
+                            TriggerServerEvent('cdn-fuel:server:PayForFuel', refillCost, purchasetype, FuelPrice)
+                        elseif purchasetype == "bank" then
+                            if Config.NPWD then
+                                local tax = GlobalTax(refillCost)
+                                local totalPayment = math.ceil(refillCost + tax)
+                                exports["npwd"]:createNotification({ -- You can change this export to your own notification
+                                    notisId = "npwd:electricityPaidFor",
+                                    appId = "BANK",
+                                    content = "You have paid $"..totalPayment.." for electric at $"..FuelPrice.." per KWh + tax",
+                                    secondaryTitle = "New Transaction",
+                                    keepOpen = false,
+                                    duration = 15000,
+                                    path = "/BANK",
+                                })
+                            end
+                            TriggerServerEvent('cdn-fuel:server:PayForFuel', refillCost, purchasetype, FuelPrice, true)
+                        end
+                        local curfuel = GetFuel(vehicle)
+                        local finalfuel = (curfuel + fuelamount)
+                        if finalfuel > 99 and finalfuel < 100 then
+                            SetFuel(vehicle, 100)
+                        else
+                            SetFuel(vehicle, finalfuel)
+                        end
+                        if Config.RenewedPhonePayment then
+                            RefuelCancelled = true
+                            RefuelPossibleAmount = 0
+                            RefuelPossible = false
+                        end
+                        StopAnimTask(ped, Config.RefuelAnimationDictionary, Config.RefuelAnimation, 3.0, 3.0, -1, 2, 0, 0, 0, 0)
+                        TriggerServerEvent("InteractSound_SV:PlayOnSource", "chargestop", 0.4)
                     else
-                        SetFuel(vehicle, finalfuel)
+                        refueling = false
+                        Cancelledrefuel = true
+                        StopAnimTask(ped, Config.RefuelAnimationDictionary, Config.RefuelAnimation, 3.0, 3.0, -1, 2, 0, 0, 0, 0)
+                        TriggerServerEvent("InteractSound_SV:PlayOnSource", "chargestop", 0.4)                        
                     end
-                    if Config.RenewedPhonePayment then
-                        RefuelCancelled = true
-                        RefuelPossibleAmount = 0
-                        RefuelPossible = false
-                    end
-                    StopAnimTask(ped, Config.RefuelAnimationDictionary, Config.RefuelAnimation, 3.0, 3.0, -1, 2, 0, 0, 0, 0)
-                    TriggerServerEvent("InteractSound_SV:PlayOnSource", "chargestop", 0.4)
-                end, function()
-                    refueling = false
-                    Cancelledrefuel = true
-                    StopAnimTask(ped, Config.RefuelAnimationDictionary, Config.RefuelAnimation, 3.0, 3.0, -1, 2, 0, 0, 0, 0)
-                    TriggerServerEvent("InteractSound_SV:PlayOnSource", "chargestop", 0.4)
-                end, "fas fa-charging-station")
+                else
+                    QBCore.Functions.Progressbar("charge-car", Lang:t("prog_electric_charging"), time, false, true, {
+                        disableMovement = true,
+                        disableCarMovement = true,
+                        disableMouse = false,
+                        disableCombat = true,
+                    }, {}, {}, {}, function()
+                        refueling = false
+                        if not Config.RenewedPhonePayment or purchasetype == 'cash' then TriggerServerEvent('cdn-fuel:server:PayForFuel', refillCost, purchasetype, FuelPrice) end
+                        local curfuel = GetFuel(vehicle)
+                        local finalfuel = (curfuel + fuelamount)
+                        if finalfuel > 99 and finalfuel < 100 then
+                            SetFuel(vehicle, 100)
+                        else
+                            SetFuel(vehicle, finalfuel)
+                        end
+                        if Config.RenewedPhonePayment then
+                            RefuelCancelled = true
+                            RefuelPossibleAmount = 0
+                            RefuelPossible = false
+                        end
+                        StopAnimTask(ped, Config.RefuelAnimationDictionary, Config.RefuelAnimation, 3.0, 3.0, -1, 2, 0, 0, 0, 0)
+                        TriggerServerEvent("InteractSound_SV:PlayOnSource", "chargestop", 0.4)
+                    end, function()
+                        refueling = false
+                        Cancelledrefuel = true
+                        StopAnimTask(ped, Config.RefuelAnimationDictionary, Config.RefuelAnimation, 3.0, 3.0, -1, 2, 0, 0, 0, 0)
+                        TriggerServerEvent("InteractSound_SV:PlayOnSource", "chargestop", 0.4)
+                    end, "fas fa-charging-station")
+                end
             end
         else return end
     end)
