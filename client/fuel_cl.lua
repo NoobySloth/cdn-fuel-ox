@@ -457,16 +457,16 @@ RegisterNetEvent('cdn-fuel:client:FinalMenu', function(purchasetype)
 			if ReserveLevels < maxfuel then
 				local wholetankcost = (FuelPrice * ReserveLevels)
 				local wholetankcostwithtax = math.ceil(FuelPrice * ReserveLevels + GlobalTax(wholetankcost))
-				fuel = lib.inputDialog('Gas Station', {{ type = "input", label = "Current Price: $" .. FuelPrice .. " / Litre \n\n Current Fuel: " .. finalfuel .. " Litres \n\n Full Tank Cost: $" ..	wholetankcostwithtax .. " \n\nOnly "..ReserveLevels.." Litres are available", default = ReserveLevels }})
+				fuel = lib.inputDialog('Gas Station', {{ type = "input", label = "Current Price: $" .. FuelPrice .. " / Litre   \n Current Fuel: " .. finalfuel .. " Litres   \n Full Tank Cost: $" ..	wholetankcostwithtax .. "   \nOnly "..ReserveLevels.." Litres are available", default = ReserveLevels }})
 
 				fuelAmount = tonumber(fuel[1])
 			else
-				fuel = lib.inputDialog('Gas Station', {{ type = "input", label = "Current Price: $" .. FuelPrice .. " / Litre \n\n Current Fuel: " .. finalfuel .. " Litres \n\n Full Tank Cost: $" ..	wholetankcostwithtax .. " \n\nThe Tank Can Hold " .. maxfuel .. " More Litres.", default = maxfuel }})
+				fuel = lib.inputDialog('Gas Station', {{ type = "input", label = "Current Price: $" .. FuelPrice .. " / Litre   \n Current Fuel: " .. finalfuel .. " Litres   \n Full Tank Cost: $" ..	wholetankcostwithtax .. "   \nThe Tank Can Hold " .. maxfuel .. " More Litres.", default = maxfuel }})
 
 				fuelAmount = tonumber(fuel[1])
 			end
 		else
-			fuel = lib.inputDialog('Gas Station', {{ type = "input", label = "Current Price: $" .. FuelPrice .. " / Litre \n\n Current Fuel: " .. finalfuel .. " Litres \n\n Full Tank Cost: $" ..	wholetankcostwithtax .. " \n\nThe Tank Can Hold " .. maxfuel .. " More Litres.", default = maxfuel }})
+			fuel = lib.inputDialog('Gas Station', {{ type = "input", label = "Current Price: $" .. FuelPrice .. " / Litre   \n Current Fuel: " .. finalfuel .. " Litres   \n Full Tank Cost: $" ..	wholetankcostwithtax .. "   \nThe Tank Can Hold " .. maxfuel .. " More Litres.", default = maxfuel }})
 
 			fuelAmount = tonumber(fuel[1])
 		end
@@ -496,8 +496,8 @@ RegisterNetEvent('cdn-fuel:client:FinalMenu', function(purchasetype)
 				local wholetankcostwithtax = math.ceil(FuelPrice * ReserveLevels + GlobalTax(wholetankcost))
 
 				fuel = exports['qb-input']:ShowInput({
-					header = "Select the Amount of Fuel<br>Current Price: $" ..
-					FuelPrice .. " / Liter <br> Current Fuel: " .. finalfuel .. " Liters <br> Full Tank Cost: $" ..
+					header = "Select the Amount of Fuel  \nCurrent Price: $" ..
+					FuelPrice .. " / Liter  \n Current Fuel: " .. finalfuel .. " Liters  \n Full Tank Cost: $" ..
 					wholetankcostwithtax .. "",
 					submitText = Lang:t("input_insert_nozzle"),
 					inputs = { {
@@ -591,7 +591,7 @@ RegisterNetEvent('cdn-fuel:client:SendMenuToServer', function()
 					options = {
 						{
 							title = 'Cash',
-							description = "Pay with cash.\nYou have: $" ..  playercashamount,
+							description = "Pay with cash.  \nYou have: $" ..  playercashamount,
 							icon = "fas fa-usd",
 							arrow = false, -- puts arrow to the right
 							onSelect = CashMenu
@@ -1022,6 +1022,17 @@ RegisterNetEvent('cdn-fuel:client:jerrycanfinalmenu', function(purchasetype)
 	end
 	if Moneyamount > math.ceil(Config.JerryCanPrice + GlobalTax(Config.JerryCanPrice)) then
 		TriggerServerEvent('cdn-fuel:server:purchase:jerrycan', purchasetype)
+		if purchasetype == 'bank' then
+		exports["npwd"]:createNotification({ -- You can change this export to your own notification
+			notisId = "npwd:JerryCanBought",
+			appId = "BANK",
+			content = "You have paid $"..math.ceil(Config.JerryCanPrice + GlobalTax(Config.JerryCanPrice)).." for a jerry can",
+			secondaryTitle = "New Transaction",
+			keepOpen = false,
+			duration = 15000,
+			path = "/BANK",
+		})
+		end
 	else
 		if purchasetype == 'bank' then QBCore.Functions.Notify(Lang:t("not_enough_money_in_bank"), 'error') end
 		if purchasetype == "cash" then QBCore.Functions.Notify(Lang:t("not_enough_money_in_cash"), 'error') end
@@ -1039,18 +1050,15 @@ RegisterNetEvent('cdn-fuel:client:purchasejerrycan', function()
 				title = Lang:t("menu_header_cash"),
 				description = Lang:t("menu_pay_with_cash") .. playercashamount,
 				icon = "fas fa-usd",
-				onSelect = function()
-					TriggerEvent('cdn-fuel:client:jerrycanfinalmenu', 'cash')
-				end,
+				event = 'cdn-fuel:client:jerrycanfinalmenu',
+				args = 'cash',
 			},
 			{
 				title = Lang:t("menu_header_bank"),
 				description = Lang:t("menu_pay_with_bank"),
 				icon = "fas fa-credit-card",
-				onSelect = function()
-					TriggerEvent('cdn-fuel:client:jerrycanfinalmenu', 'bank')
-					print('this ran')
-				end,
+				event = 'cdn-fuel:client:jerrycanfinalmenu',
+				args = 'bank',
 			},
 			{
 				title = Lang:t("menu_header_close"),
