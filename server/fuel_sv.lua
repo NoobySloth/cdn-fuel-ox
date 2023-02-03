@@ -99,8 +99,8 @@ RegisterNetEvent("cdn-fuel:server:purchase:jerrycan", function(purchasetype)
 	elseif purchasetype == "cash" then
 		moneyremovetype = "cash"
 	end
-	local info = {gasamount = Config.JerryCanGas}
 	if Config.qbox then
+		local info = {cdn_fuel = tostring(Config.JerryCanGas)}
 		exports.ox_inventory:AddItem(src, 'jerrycan', 1, info)
 		print('gave item')
 		local hasItem = exports.ox_inventory:GetItem(src, 'jerrycan', info, 1)
@@ -110,6 +110,7 @@ RegisterNetEvent("cdn-fuel:server:purchase:jerrycan", function(purchasetype)
 			print('removed money')
 		end
 	else
+		local info = {gasamount = Config.JerryCanGas}
 		if Player.Functions.AddItem("jerrycan", 1, false, info) then -- Dont remove money if AddItem() not possible!
 			TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items['jerrycan'], "add")
 			Player.Functions.RemoveMoney(moneyremovetype, total, Lang:t("jerry_can_payment_label"))
