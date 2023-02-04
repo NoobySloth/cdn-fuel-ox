@@ -2,7 +2,7 @@ Config = {}
 Config.FuelDebug = false -- Used for debugging, although there are not many areas in yet (Default: false) + Enables Setfuel Commands (0, 50, 100).
 Config.ShowNearestGasStationOnly = true -- When enabled, only the nearest gas stations will be shown on the map.
 Config.LeaveEngineRunning = true -- When true, the vehicle's engine will be left running upon exit if the player *HOLDS* F.
-Config.VehicleBlowUp = false -- When true, there will be a configurable chance of the vehicle blowing up, if you fuel while the engine is on.
+Config.VehicleBlowUp = true -- When true, there will be a configurable chance of the vehicle blowing up, if you fuel while the engine is on.
 Config.BlowUpChance = 5 -- Percentage for Chance of Engine Explosion (Default: 5% or 5)
 Config.CostMultiplier = 3.0 -- Amount to multiply 1 by. This indicates fuel price. (Default: $3.0/l or 3.0)
 Config.GlobalTax = 15.0 -- The tax, in %, that people will be charged at the pump. (Default: 15% or 15.0)
@@ -11,7 +11,8 @@ Config.FuelDecor = "_FUEL_LEVEL" -- Do not touch! (Default: "_FUEL_LEVEL")
 Config.RefuelTime = 600 -- Highly recommended to leave at 600. This value will be multiplied times the amount the player is fueling for the progress bar and cancellation logic! DON'T GO BELOW 250, performance WILL drop!
 Config.FuelTargetExport = false -- This is only used to fix this issue: https://github.com/CodineDev/cdn-fuel/issues/3. <br> <br> If you don't have this issue and haven't installed this exports in qb-target, then this should be false. Otherwise there will be an error.
 
-Config.qbox = true  -- Are you using qbox?
+-- Framework --
+Config.qbox = true  -- Set to true if using ox_inventory and ox_lib | Set to false if using qb-menu & qb-input
 
 -- Syphoning --
 Config.UseSyphoning = true -- Follow the Syphoning Install Guide to enable this option!
@@ -37,15 +38,15 @@ Config.RefuelAnimationDictionary = "timetable@gardener@filling_can" -- This is f
 
 
 --- Player Owned Gas (Gasoline) Ergonomic Refueling Stations (Poggers) ---
-Config.PlayerOwnedGasStationsEnabled = false -- When true, peds will be located at all gas stations, and players will be able to talk with peds & purchase gas stations, having to manage fuel supplies.
+Config.PlayerOwnedGasStationsEnabled = true -- When true, peds will be located at all gas stations, and players will be able to talk with peds & purchase gas stations, having to manage fuel supplies.
 Config.StationFuelSalePercentage = 0.65 -- % of sales that the station gets. If they sell 4 Liters of Gas for $16 (not including taxes), they will get 16*Config.StationFuelSalePercentage back from the sale. Treat this as tax, also, it balances the profit margins a bit.
 Config.EmergencyShutOff = false -- When true, players can walk up to the ped and shut off the pumps at a gas station. While false, this option is disabled, because it can obviously be an issue.
-Config.UnlimitedFuel = true -- When true, the fuel stations will not require refuelling by gas station owners, this is for the early stages of implementation.
+Config.UnlimitedFuel = false -- When true, the fuel stations will not require refuelling by gas station owners, this is for the early stages of implementation.
 Config.MaxFuelReserves = 100000 -- This is the maximum amount that the fuel station's reserves can hold.
 Config.FuelReservesPrice = 2.0 -- This is the price of fuel reserves for gas station owners.
 Config.GasStationSellPercentage = 50 -- This is the percentage that players will get of the gas stations price, when they sell a location!
-Config.MinimumFuelPrice = 3 -- This is the minimum value you want to let players set their fuel prices to.
-Config.MaxFuelPrice = 7 -- This is the maximum value you want to let players set their fuel prices to.
+Config.MinimumFuelPrice = 2 -- This is the minimum value you want to let players set their fuel prices to.
+Config.MaxFuelPrice = 8 -- This is the maximum value you want to let players set their fuel prices to.
 Config.PlayerControlledFuelPrices = true -- This gives you the option to disable people being able to control fuel prices. When true, players can control the fuel prices via to management menu for the location.
 Config.GasStationNameChanges = true -- This gives you the option to disable people being able to change the name of their gas station, only recommended if it becomes a problem.
 Config.NameChangeMinChar = 10 -- This is the minimum length that a Gas Station's name must be.

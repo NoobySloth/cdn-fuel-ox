@@ -18,12 +18,6 @@ local props = {
 local refueling = false
 local GasStationBlips = {} -- Used for managing blips on the client, so labels can be updated.
 
-
-local function GlobalTax(value)
-	local tax = (value / 100 * Config.GlobalTax)
-	return tax
-end
-
 AddEventHandler("QBCore:Client:OnPlayerLoaded", function()
     if GetResourceState('ox_inventory'):match("start") then
         exports.ox_inventory:displayMetadata({

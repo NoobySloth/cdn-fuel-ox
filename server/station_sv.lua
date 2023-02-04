@@ -9,6 +9,18 @@ if Config.PlayerOwnedGasStationsEnabled then -- This is so Player Owned Gas Stat
         return tax
     end
 
+    local function comma_value(amount)
+        local formatted = amount
+        local k
+        while true do
+            formatted, k = string.gsub(formatted, '^(-?%d+)(%d%d%d)', '%1,%2')
+            if (k == 0) then
+                break
+            end
+        end
+        return formatted
+    end
+
     function math.percent(percent, maxvalue)
         if tonumber(percent) and tonumber(maxvalue) then
             return (maxvalue*percent)/100
@@ -59,6 +71,7 @@ if Config.PlayerOwnedGasStationsEnabled then -- This is so Player Owned Gas Stat
             MySQL.Async.execute('UPDATE fuel_stations SET owned = ? WHERE `location` = ?', {1, location})
             MySQL.Async.execute('UPDATE fuel_stations SET owner = ? WHERE `location` = ?', {CitizenID, location})
         end
+        TriggerClientEvent('cdn-fuel:client:buysellStationNPWDNotif', src, "buy", comma_value(CostOfStation), Config.GasStations[location].label)
     end)
 
     RegisterNetEvent('cdn-fuel:stations:server:sellstation', function(location)
@@ -70,6 +83,7 @@ if Config.PlayerOwnedGasStationsEnabled then -- This is so Player Owned Gas Stat
             MySQL.Async.execute('UPDATE fuel_stations SET owned = ? WHERE `location` = ?', {0, location})
             MySQL.Async.execute('UPDATE fuel_stations SET owner = ? WHERE `location` = ?', {0, location})
             TriggerClientEvent('QBCore:Notify', src, Lang:t("station_sold_success"), 'success')
+            TriggerClientEvent('cdn-fuel:client:buysellStationNPWDNotif', src, "sell", comma_value(SalePrice), Config.GasStations[location].label)
         else
             TriggerClientEvent('QBCore:Notify', src, Lang:t("station_cannot_sell"), 'error')
         end
