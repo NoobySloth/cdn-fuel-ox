@@ -316,14 +316,17 @@ if Config.PlayerOwnedGasStationsEnabled then -- This is so Player Owned Gas Stat
 					{ type = "input", label = 'Current Reserves',
 					default = Currentreserveamount,
 					disabled = true },
+					{ type = "input", label = 'Required Reserves',
+					default = Config.MaxFuelReserves - Currentreserveamount,
+					disabled = true },
 					{ type = "slider", label = 'Full Reserve Cost: $' ..GlobalTax((Config.MaxFuelReserves - Currentreserveamount) * Config.FuelReservesPrice) + ((Config.MaxFuelReserves - Currentreserveamount) * Config.FuelReservesPrice).. '',
-					default = GlobalTax((Config.MaxFuelReserves - Currentreserveamount) * Config.FuelReservesPrice) + ((Config.MaxFuelReserves - Currentreserveamount) * Config.FuelReservesPrice), 
+					default = Config.MaxFuelReserves - Currentreserveamount, 
 					min = 0, 
-					max = GlobalTax((Config.MaxFuelReserves - Currentreserveamount) * Config.FuelReservesPrice) + ((Config.MaxFuelReserves - Currentreserveamount) * Config.FuelReservesPrice) 
+					max = Config.MaxFuelReserves - Currentreserveamount
 					},
 				})
 				if not reserves then return end
-				reservesAmount = tonumber(reserves[3])
+				reservesAmount = tonumber(reserves[4])
                 if reserves then
                     if Config.FuelDebug then print("Attempting to buy reserves!") end
                     Wait(100)

@@ -1397,8 +1397,8 @@ RegisterNetEvent('cdn-fuel:jerrycan:refueljerrycan', function(data)
 				local srcPlayerData = QBCore.Functions.GetPlayerData()
 				TriggerServerEvent('cdn-fuel:info', "add", tonumber(refuelAmount), srcPlayerData, 'jerrycan')
 				if Config.PlayerOwnedGasStationsEnabled and not Config.UnlimitedFuel then
-					TriggerServerEvent('cdn-fuel:station:server:updatereserves', "remove", fuelamount, ReserveLevels, CurrentLocation)
-					TriggerServerEvent('cdn-fuel:station:server:updatebalance', "add", fuelamount, StationBalance, CurrentLocation, FuelPrice)
+					TriggerServerEvent('cdn-fuel:station:server:updatereserves', "remove", refuelAmount, ReserveLevels, CurrentLocation)
+					TriggerServerEvent('cdn-fuel:station:server:updatebalance', "add", refuelAmount, StationBalance, CurrentLocation, FuelPrice)
 				else
 					if Config.FuelDebug then print("Config.PlayerOwnedGasStationsEnabled == false or Config.UnlimitedFuel == true, this means reserves will not be changed.") end
 				end
@@ -1428,8 +1428,8 @@ RegisterNetEvent('cdn-fuel:jerrycan:refueljerrycan', function(data)
 				local srcPlayerData = QBCore.Functions.GetPlayerData()
 				TriggerServerEvent('cdn-fuel:info', "add", tonumber(refuelAmount), srcPlayerData, syphonData)
 				if Config.PlayerOwnedGasStationsEnabled and not Config.UnlimitedFuel then
-					TriggerServerEvent('cdn-fuel:station:server:updatereserves', "remove", fuelamount, ReserveLevels, CurrentLocation)
-					TriggerServerEvent('cdn-fuel:station:server:updatebalance', "add", fuelamount, StationBalance, CurrentLocation, FuelPrice)
+					TriggerServerEvent('cdn-fuel:station:server:updatereserves', "remove", refuelAmount, ReserveLevels, CurrentLocation)
+					TriggerServerEvent('cdn-fuel:station:server:updatebalance', "add", refuelAmount, StationBalance, CurrentLocation, FuelPrice)
 				else
 					if Config.FuelDebug then print("Config.PlayerOwnedGasStationsEnabled == false or Config.UnlimitedFuel == true, this means reserves will not be changed.") end
 				end
