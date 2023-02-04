@@ -152,6 +152,32 @@ if Config.PlayerOwnedGasStationsEnabled then -- This is so Player Owned Gas Stat
         end
     end)
 
+    RegisterNetEvent('cdn-fuel:client:StationTransfersNPWDNotif', function(type, totalcost, location)
+        if Config.NPWD then
+            if type == "deposit" then
+                exports["npwd"]:createNotification({ -- You can change this export to your own notification
+                    notisId = "npwd:stationDeposit",
+                    appId = "BANK",
+                    content = "You have depositted $"..totalcost.." into " .. location,
+                    secondaryTitle = "Deposit Transaction",
+                    keepOpen = false,
+                    duration = 15000,
+                    path = "/BANK",
+                })
+            elseif type == "withdraw" then
+                exports["npwd"]:createNotification({ -- You can change this export to your own notification
+                    notisId = "npwd:stationWithdraw",
+                    appId = "BANK",
+                    content = "You have withdrawn $"..totalcost.." from " .. location,
+                    secondaryTitle = "Withdraw Transaction",
+                    keepOpen = false,
+                    duration = 15000,
+                    path = "/BANK",
+                })
+            end
+        end
+    end)
+
     RegisterNetEvent('cdn-fuel:stations:client:sellstation', function(data)
         local location = data.location
         local SalePrice = data.SalePrice

@@ -98,6 +98,7 @@ if Config.PlayerOwnedGasStationsEnabled then -- This is so Player Owned Gas Stat
         MySQL.Async.execute('UPDATE fuel_stations SET balance = ? WHERE `location` = ?', {setamount, location})
         Player.Functions.AddMoney("bank", amount, Lang:t("station_withdraw_payment_label")..Config.GasStations[location].label)
         TriggerClientEvent('QBCore:Notify', src, Lang:t("station_success_withdrew_1")..amount..Lang:t("station_success_withdrew_2"), 'success')
+        TriggerClientEvent('cdn-fuel:client:StationTransfersNPWDNotif', src, "withdraw", comma_value(setamount), Config.GasStations[location].label)
     end)
 
     RegisterNetEvent('cdn-fuel:station:server:Deposit', function(amount, location, StationBalance)
@@ -108,6 +109,7 @@ if Config.PlayerOwnedGasStationsEnabled then -- This is so Player Owned Gas Stat
         if Player.Functions.RemoveMoney("bank", amount, Lang:t("station_deposit_payment_label")..Config.GasStations[location].label) then
             MySQL.Async.execute('UPDATE fuel_stations SET balance = ? WHERE `location` = ?', {setamount, location})
             TriggerClientEvent('QBCore:Notify', src, Lang:t("station_success_deposit_1")..amount..Lang:t("station_success_deposit_2"), 'success')
+            TriggerClientEvent('cdn-fuel:client:StationTransfersNPWDNotif', src, "deposit", comma_value(setamount), Config.GasStations[location].label)
         else
             TriggerClientEvent('QBCore:Notify', src, Lang:t("station_cannot_afford_deposit")..amount.."!", 'success')
         end
