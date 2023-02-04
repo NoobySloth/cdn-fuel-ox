@@ -1,7 +1,7 @@
 fx_version 'cerulean'
 game 'gta5'
 author 'https://www.github.com/CodineDev' -- Base Refueling System from PS (https://www.github.com/Project-Sloth), other code by CodineDev (https://www.github.com/CodineDev).
-description 'cdn-fuel ox converted by NoobySloth'
+description 'cdn-fuel ox converted by NoobySloth & RijayJH'
 version '2.0.0'
 
 client_scripts {
