@@ -1584,7 +1584,7 @@ end)
 
 RegisterNetEvent('cdn-syphoning:syphon', function(data)
 	local reason = data.reason
-	local HasSyphon = QBCore.Functions.HasItem("syphoningkit", 1)
+	local HasSyphon = false
 	if Config.SyphonDebug then print('Item Data Syphon: ' .. json.encode(data.itemData)) end
 	if Config.SyphonDebug then print('Reason: ' .. reason) end
 	local vehicle = QBCore.Functions.GetClosestVehicle()
@@ -1600,12 +1600,14 @@ RegisterNetEvent('cdn-syphoning:syphon', function(data)
 	end
 	Wait(50)
 	if NotElectric then
+		if Config.qbox then
+			currentsyphonamount = tonumber(data.itemData.metadata.cdn_fuel)
+			HasSyphon = exports.ox_inventory:Search('count', 'syphoningkit')
+		else
+			currentsyphonamount = data.itemData.info.gasamount
+			HasSyphon =  = QBCore.Functions.HasItem("syphoningkit", 1)
+		end
 		if HasSyphon then
-			if Config.qbox then
-				currentsyphonamount = data.itemData.metadata.cdn_fuel
-			else
-				currentsyphonamount = data.itemData.info.gasamount
-			end
 			local fitamount = (Config.SyphonKitCap - currentsyphonamount)
 			local vehicle = QBCore.Functions.GetClosestVehicle()
 			local vehiclecoords = GetEntityCoords(vehicle)
