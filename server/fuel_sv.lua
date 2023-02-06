@@ -119,7 +119,12 @@ end)
 if Config.UseJerryCan then
 	QBCore.Functions.CreateUseableItem("jerrycan", function(source, item)
 		local src = source
-		TriggerClientEvent('cdn-fuel:jerrycan:refuelmenu', src, item)
+		local jerry_can = ox_inventory:GetItem(source, 'jerrycan', nil, false)
+		if jerry_Can.count == 1 then
+			TriggerClientEvent('cdn-fuel:jerrycan:refuelmenu', src, item)
+		else
+			TriggerClientEvent('QBCore:Notify', src, 'U have more than 1 jerry cans in your inventory!', 'error')
+		end
 	end)
 end
 
