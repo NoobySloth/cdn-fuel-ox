@@ -2,12 +2,16 @@ function GetFuel(vehicle)
 	return DecorGetFloat(vehicle, Config.FuelDecor)
 end
 
+exports('GetFuel', GetFuel)
+
 function SetFuel(vehicle, fuel)
 	if type(fuel) == 'number' and fuel >= 0 and fuel <= 100 then
 		SetVehicleFuelLevel(vehicle, fuel + 0.0)
 		DecorSetFloat(vehicle, Config.FuelDecor, GetVehicleFuelLevel(vehicle))
 	end
 end
+
+exports('SetFuel', SetFuel)
 
 function LoadAnimDict(dict)
 	if not HasAnimDictLoaded(dict) then
