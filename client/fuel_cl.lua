@@ -1605,7 +1605,7 @@ RegisterNetEvent('cdn-syphoning:syphon', function(data)
 			HasSyphon = exports.ox_inventory:Search('count', 'syphoningkit')
 		else
 			currentsyphonamount = data.itemData.info.gasamount
-			HasSyphon =  = QBCore.Functions.HasItem("syphoningkit", 1)
+			HasSyphon = QBCore.Functions.HasItem("syphoningkit", 1)
 		end
 		if HasSyphon then
 			local fitamount = (Config.SyphonKitCap - currentsyphonamount)
