@@ -1,3 +1,5 @@
+THIS VERSION IS NO LONGER ACTIVE - PLEASE USE [CDN-FUEL](https://github.com/CodineDev/cdn-fuel) UP-TO-DATE WITH OX! 
+
 ![Codine Development Fuel Script Banner](https://i.imgur.com/qVOMMvW.png)
 
 # CDN-Fuel (2.0.0 Beta) 
